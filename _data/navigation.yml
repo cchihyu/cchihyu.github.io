@@ -1,11 +1,11 @@
 # main links links
 main:
   - title: "Publications"
-    url: /publication/   
+    url: /talks/   
     
   - title: "Talks"
     url: /talks/   
 
   - title: "CV"
-    url: files/CV_CYC.pdf
+    url: /files/CV_CYC.pdf
  
