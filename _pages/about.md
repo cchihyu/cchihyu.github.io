@@ -51,13 +51,9 @@ My general research lies in the intersection of **machine learning** & **statist
    **C.-Y. Chang** and M.-C. Chang.
    Submitted, 2025.
 
-# Academic Advisors
-- I am extremely fortunate to have been advised by [Dr. Ming-Chung Chang](https://sites.google.com/view/mcchang/), an Associate Research Fellow at the Institute of Statistical Science, Academia Sinica, during my senior year as a Mathematics student. He has guided my journey into the field of statistics from then until now.
-- During my master's studies, I am very pleased to be advised by [Prof. Raed Al Kontar](https://alkontar.engin.umich.edu/), an Associate professor at the Department of Industrial and Operations Engineering, The University of Michigan, Ann Arbor. We collaboratively developed two papers on sequential decision-making, which sparked my interest in this field.
-
 # Services
-- Journal reviewer: Journal of Data Science/Journal of Statistical Theory and Applications
-- Conference reviewer: AISTATS 2026
+- Journal reviewer: Journal of Data Science (1)
+- Conference reviewer: AISTATS 2026 (3), UAI 2026 (3)
 
 # Contact
 - Address: I-HUB, Wood Ln, London, W12 0BZ.
