@@ -36,27 +36,33 @@ My general research lies in the intersection of **machine learning** & **statist
 # Publications
 
 1. **Federated Offine Contextual Bayesian Optimization.**  
-   **C.-Y. Chang**, T. Gao, Q. Chen, W. Lu and R. A. Kontar.  
-   Submitted, 2025.
+   **C.-Y. Chang**, Q. Chen, T. Gao, C. Okwudire, D. Fenning, N. Dasgupta, W. Lu and R. A. Kontar.  
+   Submitted, 2026.
 
 2. **Accelerated Aggregated D-Optimal Designs for Estimating Main Effects in Black-Box Models.**  
    **C.-Y. Chang** and M.-C. Chang.  
-   arXiv preprint arXiv:2510.08465, 2025.
+   arXiv preprint arXiv:2510.08465, 2026.
    
 3. **LLINBO: Trustworthy LLM In-the-Loop Bayesian Optimization.**  
    **C.-Y. Chang**, M. Azvar, C. Okwudire and R. A. Kontar.  
-   arXiv preprint arXiv:2505.14756, 2025.
+   arXiv preprint arXiv:2505.14756, 2026.
 
 4. **Bootstrap Aggregation for Regression Problems via Generalized Least Squares.**  
    **C.-Y. Chang** and M.-C. Chang.
-   Submitted, 2025.
+   Submitted, 2026.
 
 # Services
 - Journal reviewer: Journal of Data Science (1)
 - Conference reviewer: AISTATS 2026 (3), UAI 2026 (3)
 
+# Awards
+- **Roth Scholarship.** 2025-2029 Department of Mathematics, Imperial College London
+- **Government Scholarship for Studying Abroad.** 2023-2025 Ministry of Education, Taiwan
+- **Special Education Student Award Grant.** 2020, 2021, and 2022 NTHU, Taiwan
+- **Adjunct Research Grant.** 2022-2023 Institute of Statistical Science, Academia Sinica
+
 # Contact
 - Address: I-HUB, Wood Ln, London, W12 0BZ.
 - Email: c.chang25@imperial.ac.uk
 
-Last Update: Feb. 2, 2026
+Last Update: Mar. 20, 2026
