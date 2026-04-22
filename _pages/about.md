@@ -49,8 +49,7 @@ My general research lies in the intersection of **machine learning** & **statist
 
 4. **Bootstrap Aggregation for Regression Problems via Generalized Least Squares.**  
    **C.-Y. Chang** and M.-C. Chang.
-   Submitted, 2026.
-
+   Statistics and Computing, 2026, to appear.
 # Services
 - Journal reviewer: Journal of Data Science (1)
 - Conference reviewer: AISTATS 2026 (3), UAI 2026 (3)
