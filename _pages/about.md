@@ -37,7 +37,7 @@ My general research lies in the intersection of **machine learning** & **statist
 
 1. **Federated Offine Contextual Bayesian Optimization.**  
    **C.-Y. Chang**, Q. Chen, T. Gao, C. Okwudire, D. Fenning, N. Dasgupta, W. Lu and R. A. Kontar.  
-   Submitted, 2026.
+   arXiv preprint arxiv:2604.18912, 2026.
 
 2. **Accelerated Aggregated D-Optimal Designs for Estimating Main Effects in Black-Box Models.**  
    **C.-Y. Chang** and M.-C. Chang.  
