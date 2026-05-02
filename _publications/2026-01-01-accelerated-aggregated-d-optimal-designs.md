@@ -6,6 +6,8 @@ permalink: /publication/accelerated-aggregated-d-optimal-designs
 excerpt: "Aggregated D-optimal design methods for estimating main effects in black-box models."
 date: 2026-01-01
 venue: "arXiv preprint"
+authors: "**C.-Y. Chang** and M.-C. Chang"
+status: "arXiv preprint, 2026"
 paperurl: "https://arxiv.org/abs/2510.08465"
 codeurl: "https://github.com/cchihyu/A2D2E"
 presentationurl:
