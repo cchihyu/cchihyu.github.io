@@ -7,6 +7,9 @@ excerpt: "Federated and contextual Bayesian optimization from offline data."
 date: 2026-04-30
 venue: "arXiv preprint"
 paperurl: "https://arxiv.org/abs/2604.18912"
+codeurl:
+presentationurl:
+posterurl:
 citation: "C.-Y. Chang, Q. Chen, T. Gao, C. Okwudire, D. Fenning, N. Dasgupta, W. Lu and R. A. Kontar. &quot;Federated Offline Contextual Bayesian Optimization.&quot; <i>arXiv preprint</i>, 2026."
 ---
 

@@ -21,26 +21,10 @@ My current and recent work focuses on methods for learning and decision making f
 
 [Read more about my research](/research/).
 
-## Selected Publications
-
-- **Federated Offline Contextual Bayesian Optimization.**  
-  **C.-Y. Chang**, Q. Chen, T. Gao, C. Okwudire, D. Fenning, N. Dasgupta, W. Lu and R. A. Kontar. arXiv preprint, 2026.
-
-- **Accelerated Aggregated D-Optimal Designs for Estimating Main Effects in Black-Box Models.**  
-  **C.-Y. Chang** and M.-C. Chang. arXiv preprint, 2026.
-
-- **LLINBO: Trustworthy LLM In-the-Loop Bayesian Optimization.**  
-  **C.-Y. Chang**, M. Azvar, C. Okwudire and R. A. Kontar. arXiv preprint, 2026.
-
-- **Bootstrap Aggregation for Regression Problems via Generalized Least Squares.**  
-  **C.-Y. Chang** and M.-C. Chang. *Statistics and Computing*, to appear.
-
-[View all publications](/publications/).
-
 ## News
 
-- **2025:** Started PhD study in Mathematics at Imperial College London.
-- **2025:** Awarded the Roth Scholarship by the Department of Mathematics, Imperial College London.
+- **2025:** Joined the Department of Mathematics at Imperial College London as a PhD student.
+- **2024:** Graduated from the University of Michigan with an MSc in Applied Statistics.
 
 ## Contact
 

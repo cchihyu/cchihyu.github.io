@@ -5,4 +5,17 @@
   gtag('js', new Date());
 
   gtag('config', '{{site.analytics.google.tracking_id}}');
+
+  document.addEventListener('click', function(event) {
+    var link = event.target.closest('a');
+    if (!link || !link.closest('.publication-links')) {
+      return;
+    }
+
+    gtag('event', 'publication_link_click', {
+      link_text: link.textContent.trim(),
+      link_url: link.href,
+      page_location: window.location.href
+    });
+  });
 </script>
