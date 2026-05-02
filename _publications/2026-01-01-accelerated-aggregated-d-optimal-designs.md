@@ -7,7 +7,7 @@ excerpt: "Aggregated D-optimal design methods for estimating main effects in bla
 date: 2026-01-01
 venue: "arXiv preprint"
 paperurl: "https://arxiv.org/abs/2510.08465"
-codeurl:
+codeurl: "https://github.com/cchihyu/A2D2E"
 presentationurl:
 posterurl:
 citation: "C.-Y. Chang and M.-C. Chang. &quot;Accelerated Aggregated D-Optimal Designs for Estimating Main Effects in Black-Box Models.&quot; <i>arXiv preprint</i>, 2026."
