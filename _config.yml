@@ -9,10 +9,10 @@
 # Basic Site Settings
 locale                   : "en-US"
 site_theme               : "default"
-title                    : "Chih-Yu's Homepage"
+title                    : "Chih-Yu Chang"
 title_separator          : "-"
-name                     : &name "Your Name"
-description              : &description "personal description"
+name                     : &name "Chih-Yu Chang"
+description              : &description "PhD student in Mathematics at Imperial College London"
 url                      : https://cchihyu.github.io # the base hostname & protocol for your site e.g. "https://[your GitHub username].github.io"
 baseurl                  : "" # the subpath of your site, e.g. "/blog"
 repository               : "cchihyu.github.io"
@@ -77,10 +77,8 @@ author:
 
 # Publication Category - The following the list of publication categories and their headings
 publication_category:
-  books:
-    title: 'Books'
   manuscripts:
-    title: 'Journal Articles'    
+    title: 'Papers and Preprints'    
   conferences:
     title: 'Conference Papers'
 

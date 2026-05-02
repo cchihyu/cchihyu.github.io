@@ -9,56 +9,44 @@ redirect_from:
 
 {% include base_path %}
 
+[Download my full CV](/files/Resume_Chih_Yu_Chang.pdf).
+
 Education
 ======
-* Ph.D in Version Control Theory, GitHub University, 2018 (expected)
-* M.S. in Jekyll, GitHub University, 2014
-* B.S. in GitHub, GitHub University, 2012
+* PhD in Mathematics, Imperial College London, 2025--present
+  * Supervisor: Prof. Kelly W. Zhang
+  * Co-supervisor: Prof. Andrew Duncan
+* MSc in Applied Statistics, University of Michigan, Ann Arbor, 2024
+  * Advisor: Prof. Raed Al Kontar
+* BSc in Mathematics, National Tsing Hua University, 2023
+  * Advisor: Dr. Ming-Chung Chang
 
-Work experience
+Research Experience
 ======
-* Spring 2024: Academic Pages Collaborator
-  * GitHub University
-  * Duties includes: Updates and improvements to template
-  * Supervisor: The Users
-
-* Fall 2015: Research Assistant
-  * GitHub University
-  * Duties included: Merging pull requests
-  * Supervisor: Professor Hub
-
-* Summer 2015: Research Assistant
-  * GitHub University
-  * Duties included: Tagging issues
-  * Supervisor: Professor Git
-  
-Skills
-======
-* Skill 1
-* Skill 2
-  * Sub-skill 2.1
-  * Sub-skill 2.2
-  * Sub-skill 2.3
-* Skill 3
+* Research Assistant, Institute of Statistical Science, Academia Sinica, 2023 and 2025
+  * Mentor: Dr. Ming-Chung Chang
+* Visiting Scholar, Institute of Statistical Science, Academia Sinica, 2024
 
 Publications
 ======
-  <ul>{% for post in site.publications reversed %}
-    {% include archive-single-cv.html %}
-  {% endfor %}</ul>
-  
-Talks
-======
-  <ul>{% for post in site.talks reversed %}
-    {% include archive-single-talk-cv.html  %}
-  {% endfor %}</ul>
-  
+<ul>{% for post in site.publications reversed %}
+  {% include archive-single-cv.html %}
+{% endfor %}</ul>
+
 Teaching
 ======
-  <ul>{% for post in site.teaching reversed %}
-    {% include archive-single-cv.html %}
-  {% endfor %}</ul>
-  
-Service and leadership
+<ul>{% for post in site.teaching reversed %}
+  {% include archive-single-cv.html %}
+{% endfor %}</ul>
+
+Service
 ======
-* Currently signed in to 43 different slack teams
+* Journal reviewer: Journal of Data Science
+* Conference reviewer: AISTATS 2026, UAI 2026
+
+Awards
+======
+* Roth Scholarship, Department of Mathematics, Imperial College London, 2025--2029
+* Government Scholarship for Studying Abroad, Ministry of Education, Taiwan, 2023--2025
+* Special Education Student Award Grant, National Tsing Hua University, 2020--2022
+* Adjunct Research Grant, Institute of Statistical Science, Academia Sinica, 2022--2023
