@@ -14,17 +14,18 @@ Before joining Imperial, I earned an MSc in Applied Statistics from the [Univers
 
 My current and recent work focuses on methods for learning and decision making from limited or distributed data, including:
 
-- sequential decision making and bandit inference;
-- Bayesian optimization with human or model-in-the-loop feedback;
-- federated and collaborative statistical learning;
-- experimental design for black-box models.
+- reinforcement learning;
+- Bayesian optimization;
+- federated and collaborative learning;
+- applied experimental design.
 
 [Read more about my research](/research/).
 
 ## News
 
-- **2025:** Joined the Department of Mathematics at Imperial College London as a PhD student.
-- **2024:** Graduated from the University of Michigan with an MSc in Applied Statistics.
+- **05/2026:** The paper **Bootstrap Aggregation for Regression Problems via Generalized Least Squares** is accepted by Statistics and Computing.
+- **09/2025:** Joined the Department of Mathematics at Imperial College London as a PhD student.
+- **12/2024:** Graduated from the University of Michigan with an MSc in Applied Statistics.
 
 ## Contact
 
