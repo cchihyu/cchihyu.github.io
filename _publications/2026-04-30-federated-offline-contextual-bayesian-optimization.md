@@ -1,7 +1,7 @@
 ---
 title: "Collaborative Contextual Bayesian Optimization"
 collection: publications
-category: manuscripts
+category: preprint
 permalink: /publication/federated-offline-contextual-bayesian-optimization
 excerpt:
 date: 2026-04-20

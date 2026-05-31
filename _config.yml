@@ -77,10 +77,10 @@ author:
 
 # Publication Category - The following the list of publication categories and their headings
 publication_category:
-  manuscripts:
-    title: 'Papers and Preprints'    
-  conferences:
-    title: 'Conference Papers'
+  published:
+    title: 'Published Papers'
+  preprint:
+    title: 'Preprints'
 
 # Site Settings
 teaser                   :  # filename of teaser fallback teaser image placed in /images/, .e.g. "500x300.png"

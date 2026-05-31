@@ -1,7 +1,7 @@
 ---
 title: "Accumulated Aggregated D-Optimal Designs for Estimating Main Effects in Black-Box Models"
 collection: publications
-category: manuscripts
+category: preprint
 permalink: /publication/accelerated-aggregated-d-optimal-designs
 excerpt:
 date: 2026-04-22
