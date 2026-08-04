@@ -61,42 +61,51 @@
   font-style: italic;
 }
 
-.publication-tags {
+.publication-title {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
+  column-gap: 0.45rem;
+  row-gap: 0.25rem;
+}
+
+.publication-title-tags {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 0.35rem;
-  margin-top: 0;
-  margin-bottom: 0.55em;
+  flex-shrink: 0;
 }
 
 .publication-tag {
   display: inline-flex;
   align-items: center;
-  border: 1px solid #c7d7ee;
+  border: 1px solid #6fa8dc;
   border-radius: 999px;
-  padding: 0.12rem 0.5rem;
-  background: #edf5ff;
-  color: #24527f;
-  font-size: 0.72em;
+  padding: 0.14rem 0.52rem;
+  background: #d8ecff;
+  color: #174a7c;
+  font-family: $sans-serif;
+  font-size: 0.48em;
   font-weight: 600;
   line-height: 1.35;
   white-space: nowrap;
 }
 
 .publication-tag--bayesian-optimization {
-  border-color: #a9d8c1;
-  background: #e9f8ef;
-  color: #16633f;
+  border-color: #32a26a;
+  background: #dff5e8;
+  color: #075f36;
 }
 
 .publication-tag--statistical-learning {
-  border-color: #f2c078;
-  background: #fff4df;
-  color: #7a4a00;
+  border-color: #e69b22;
+  background: #fff0c9;
+  color: #704400;
 }
 
 .publication-tag--statistical-inference-for-bandits {
-  border-color: #c8b7ee;
-  background: #f2edff;
-  color: #51358f;
+  border-color: #8c6be8;
+  background: #eee6ff;
+  color: #41258d;
 }

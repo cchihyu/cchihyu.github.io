@@ -26,7 +26,14 @@
       </div>
     {% endif %}
 
-    <h2 class="archive__item-title" itemprop="headline">
+    <h2 class="archive__item-title{% if post.collection == 'publications' %} publication-title{% endif %}" itemprop="headline">
+      {% if post.collection == 'publications' and post.publication_tags %}
+        <span class="publication-title-tags" aria-label="Publication topics">
+          {% for tag in post.publication_tags %}
+            <span class="publication-tag publication-tag--{{ tag | slugify }}">{{ tag }}</span>
+          {% endfor %}
+        </span>
+      {% endif %}
       {% if post.link %}
         <a href="{{ post.link }}">{{ title }}</a> <a href="{{ base_path }}{{ post.url }}" rel="permalink"><i class="fa fa-link" aria-hidden="true" title="permalink"></i><span class="sr-only">Permalink</span></a>
       {% else %}
@@ -48,13 +55,6 @@
             <p class="publication-status">{{ post.status }}</p>
           {% elsif post.venue %}
             <p class="publication-status">{{ post.venue }}</p>
-          {% endif %}
-          {% if post.publication_tags %}
-            <p class="publication-tags" aria-label="Publication topics">
-              {% for tag in post.publication_tags %}
-                <span class="publication-tag publication-tag--{{ tag | slugify }}">{{ tag }}</span>
-              {% endfor %}
-            </p>
           {% endif %}
         {% elsif post.date %}
          <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> {{ site.data.ui-text[site.locale].date_label | default: "Published:" }}</strong> <time datetime="{{ post.date | default: "1900-01-01" | date_to_xmlschema }}">{{ post.date | default: "1900-01-01" | date: "%B %d, %Y" }}</time></p>
