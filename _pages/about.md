@@ -21,6 +21,12 @@ My current and recent work focuses on methods for learning and decision making f
 
 [Read more about my research](/research/).
 
+## Teaching and Service
+
+- **Teaching Assistant, Learning Agents (Master level)**, Imperial College London, Fall 2025 and Fall 2026.
+- **Teaching Assistant, Calculus I and II**, National Tsing Hua University, 2022--2023.
+- **Conference Reviewer:** AISTATS 2026 (3 papers), UAI 2026 (6 papers), and NeurIPS 2026 (3 papers).
+
 ## News
 - **06/2026:** I will present a poster at [the Advances in Adaptive Experimentation Workshop](https://aae-workshop.github.io/) at UCL.
 - **05/2026:** The paper **Bootstrap Aggregation for Regression Problems via Generalized Least Squares** is accepted by Statistics and Computing.
