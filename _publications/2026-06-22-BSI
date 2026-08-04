@@ -6,7 +6,7 @@ permalink: /publication/bandit-simulation-average-reward-inference
 excerpt:
 date: 2026-05-30
 venue: "arXiv preprint"
-authors: "S. Praharaj, **C.-Y. Chang**, K. Khamaru and K. W. Zhang"
+authors: "**C.-Y. Chang**\\*, S. Praharaj\\*, K. Khamaru and K. W. Zhang"
 status: "arXiv preprint, 2026"
 publication_tags:
   - Statistical Inference for Bandits
@@ -14,7 +14,7 @@ paperurl: "https://arxiv.org/abs/2606.00913"
 codeurl:
 presentationurl:
 posterurl:
-citation: "S. Praharaj, C.-Y. Chang, K. Khamaru and K. W. Zhang. &quot;Bandit Simulation for Average Reward Inference.&quot; <i>arXiv preprint</i>, 2026."
+citation: "C.-Y. Chang\\*, S. Praharaj\\*, K. Khamaru and K. W. Zhang. &quot;Bandit Simulation for Average Reward Inference.&quot; <i>arXiv preprint</i>, 2026."
 ---
 
 Multi-arm bandit algorithms are increasingly used in online platforms, clinical trials, and social science experiments, but valid statistical inference on their performance remains an open challenge. We propose Bandit Simulation for Inference (BSI), a framework that fits a simulator of the bandit environment from observed data and uses it to estimate the mean reward under evaluation policies, including adaptive black-box algorithms. BSI propagates uncertainty in the estimated simulator parameters into confidence interval construction, requires only weak exploration assumptions on the behavior policy, and avoids importance weighting.

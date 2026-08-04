@@ -33,16 +33,11 @@ Publications
   {% include archive-single-cv.html %}
 {% endfor %}</ul>
 
-Teaching
+Teaching and Service
 ======
-<ul>{% for post in site.teaching reversed %}
-  {% include archive-single-cv.html %}
-{% endfor %}</ul>
-
-Service
-======
-* Journal reviewer: Journal of Data Science
-* Conference reviewer: AISTATS 2026, UAI 2026
+* **Teaching Assistant, Learning Agents (Master level)** <span style="float: right;">ICL, Fall 2025, Fall 2026</span>
+* **Teaching Assistant, Calculus I and II** <span style="float: right;">NTHU, 2022--2023</span>
+* **Conference Reviewer:** AISTATS 2026 (3 papers), UAI 2026 (6 papers), and NeurIPS 2026 (3 papers).
 
 Awards
 ======
