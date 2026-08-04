@@ -43,6 +43,11 @@
 
 .publication-title {
   color: var(--global-text-color);
+  text-decoration: none;
+}
+
+.archive__item:hover .publication-title {
+  text-decoration: none;
 }
 
 .publication-meta {
