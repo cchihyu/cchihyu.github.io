@@ -27,14 +27,9 @@
     {% endif %}
 
     <h2 class="archive__item-title{% if post.collection == 'publications' %} publication-title{% endif %}" itemprop="headline">
-      {% if post.collection == 'publications' and post.publication_tags %}
-        <span class="publication-title-tags" aria-label="Publication topics">
-          {% for tag in post.publication_tags %}
-            <span class="publication-tag publication-tag--{{ tag | slugify }}">{{ tag }}</span>
-          {% endfor %}
-        </span>
-      {% endif %}
-      {% if post.link %}
+      {% if post.collection == 'publications' %}
+        {{ title }}
+      {% elsif post.link %}
         <a href="{{ post.link }}">{{ title }}</a> <a href="{{ base_path }}{{ post.url }}" rel="permalink"><i class="fa fa-link" aria-hidden="true" title="permalink"></i><span class="sr-only">Permalink</span></a>
       {% else %}
         <a href="{{ base_path }}{{ post.url }}" rel="permalink">{{ title }}</a>
@@ -48,13 +43,17 @@
         {% if post.collection == 'teaching' %}
           <p> {{ post.type }}, <i>{{ post.venue }}</i>, {{ post.date | default: "1900-01-01" | date: "%Y" }} </p>
         {% elsif post.collection == 'publications' %}
-          {% if post.authors %}
-            <p class="publication-authors">{{ post.authors | markdownify | remove: "<p>" | remove: "</p>" }}</p>
-          {% endif %}
-          {% if post.status %}
-            <p class="publication-status">{{ post.status }}</p>
-          {% elsif post.venue %}
-            <p class="publication-status">{{ post.venue }}</p>
+          {% if post.authors or post.status or post.venue %}
+            <p class="publication-meta">
+              {% if post.authors %}
+                <span class="publication-authors">{{ post.authors | markdownify | remove: "<p>" | remove: "</p>" }}</span>
+              {% endif %}
+              {% if post.status %}
+                <span class="publication-status">{{ post.status }}</span>
+              {% elsif post.venue %}
+                <span class="publication-status">{{ post.venue }}</span>
+              {% endif %}
+            </p>
           {% endif %}
         {% elsif post.date %}
          <p class="page__date"><strong><i class="fa fa-fw fa-calendar" aria-hidden="true"></i> {{ site.data.ui-text[site.locale].date_label | default: "Published:" }}</strong> <time datetime="{{ post.date | default: "1900-01-01" | date_to_xmlschema }}">{{ post.date | default: "1900-01-01" | date: "%B %d, %Y" }}</time></p>
@@ -68,31 +67,40 @@
     {% endif %}
     
     {% if post.collection == 'publications' %}
-      <p class="publication-links">
-        {% if post.paperurl %}
-          <a href="{{ post.paperurl }}">Paper</a>
-        {% else %}
-          <span>Paper</span>
+      <div class="publication-actions">
+        {% if post.publication_tags %}
+          <span class="publication-tags" aria-label="Publication topics">
+            {% for tag in post.publication_tags %}
+              <span class="publication-tag publication-tag--{{ tag | slugify }}">{{ tag }}</span>
+            {% endfor %}
+          </span>
         {% endif %}
-        |
-        {% if post.codeurl %}
-          <a href="{{ post.codeurl }}">Code</a>
-        {% else %}
-          <span>Code</span>
-        {% endif %}
-        |
-        {% if post.presentationurl %}
-          <a href="{{ post.presentationurl }}">Presentation</a>
-        {% else %}
-          <span>Presentation</span>
-        {% endif %}
-        |
-        {% if post.posterurl %}
-          <a href="{{ post.posterurl }}">Poster</a>
-        {% else %}
-          <span>Poster</span>
-        {% endif %}
-      </p>
+        <span class="publication-links">
+          {% if post.paperurl %}
+            <a href="{{ post.paperurl }}">Paper</a>
+          {% else %}
+            <span>Paper</span>
+          {% endif %}
+          |
+          {% if post.codeurl %}
+            <a href="{{ post.codeurl }}">Code</a>
+          {% else %}
+            <span>Code</span>
+          {% endif %}
+          |
+          {% if post.presentationurl %}
+            <a href="{{ post.presentationurl }}">Presentation</a>
+          {% else %}
+            <span>Presentation</span>
+          {% endif %}
+          |
+          {% if post.posterurl %}
+            <a href="{{ post.posterurl }}">Poster</a>
+          {% else %}
+            <span>Poster</span>
+          {% endif %}
+        </span>
+      </div>
     {% endif %}
 
   </article>
