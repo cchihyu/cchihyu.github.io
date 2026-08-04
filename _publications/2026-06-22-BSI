@@ -1,20 +1,20 @@
 ---
-title: "Accumulated Aggregated D-Optimal Designs for Estimating Main Effects in Black-Box Models"
+title: "Bandit Simulation for Average Reward Inference"
 collection: publications
 category: preprint
-permalink: /publication/accelerated-aggregated-d-optimal-designs
+permalink: /publication/bandit-simulation-average-reward-inference
 excerpt:
-date: 2026-04-22
+date: 2026-05-30
 venue: "arXiv preprint"
-authors: "**C.-Y. Chang** and M.-C. Chang"
+authors: "S. Praharaj, **C.-Y. Chang**, K. Khamaru and K. W. Zhang"
 status: "arXiv preprint, 2026"
 publication_tags:
   - Statistical Inference for Bandits
-paperurl: "https://arxiv.org/abs/2510.08465"
-codeurl: "https://github.com/cchihyu/A2D2E"
+paperurl: "https://arxiv.org/abs/2606.00913"
+codeurl:
 presentationurl:
 posterurl:
-citation: "C.-Y. Chang and M.-C. Chang. &quot;Accelerated Aggregated D-Optimal Designs for Estimating Main Effects in Black-Box Models.&quot; <i>arXiv preprint</i>, 2026."
+citation: "S. Praharaj, C.-Y. Chang, K. Khamaru and K. W. Zhang. &quot;Bandit Simulation for Average Reward Inference.&quot; <i>arXiv preprint</i>, 2026."
 ---
 
-Estimating how individual input variables affect the output of a black-box model is a central task in explainable machine learning. However, existing methods suffer from two key limitations: sensitivity to out-of-distribution (OOD) evaluations, which arises when query points are placed far from the data manifold, and instability under feature correlation, which can lead to unreliable effect estimates in practice. We introduce a unified view of main effect estimation as a design problem, which reveals that all existing methods differ only in their choice of evaluation locations. Building on this formulation, we propose A2D2E, an Estimator based on Accumulated Aggregated D-Optimal Designs, which replaces evaluations with a D-optimal hypercube design to minimize the variance of main effect estimation. A2D2E is model-agnostic, requires no differentiability of the predictor, and admits a closed-form estimator with complexity comparable to existing approaches. We establish that A2D2E is consistent to the same population target as ALE, and extend this result to the realistic setting where only a surrogate model is available. Through extensive simulations across multiple predictive models and dependence settings, we demonstrate that A2D2E outperforms ALE-based methods, with the largest gains under high feature correlation.
+Multi-arm bandit algorithms are increasingly used in online platforms, clinical trials, and social science experiments, but valid statistical inference on their performance remains an open challenge. We propose Bandit Simulation for Inference (BSI), a framework that fits a simulator of the bandit environment from observed data and uses it to estimate the mean reward under evaluation policies, including adaptive black-box algorithms. BSI propagates uncertainty in the estimated simulator parameters into confidence interval construction, requires only weak exploration assumptions on the behavior policy, and avoids importance weighting.
