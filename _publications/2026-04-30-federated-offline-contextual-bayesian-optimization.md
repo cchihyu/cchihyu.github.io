@@ -8,6 +8,8 @@ date: 2026-04-20
 venue: "arXiv preprint"
 authors: "**C.-Y. Chang**, Q. Chen, T. Gao, C. Okwudire, D. Fenning, N. Dasgupta, W. Lu and R. A. Kontar"
 status: "arXiv preprint, 2026"
+publication_tags:
+  - Bayesian Optimization
 paperurl: "https://arxiv.org/abs/2604.18912"
 codeurl: "https://github.com/cchihyu/Collaborative-Contextual-Bayesian-Optimization"
 presentationurl:

@@ -8,6 +8,8 @@ date: 2026-04-22
 venue: "arXiv preprint"
 authors: "**C.-Y. Chang** and M.-C. Chang"
 status: "arXiv preprint, 2026"
+publication_tags:
+  - Statistical Learning
 paperurl: "https://arxiv.org/abs/2510.08465"
 codeurl: "https://github.com/cchihyu/A2D2E"
 presentationurl:

@@ -60,3 +60,43 @@
   color: #555;
   font-style: italic;
 }
+
+.publication-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0;
+  margin-bottom: 0.55em;
+}
+
+.publication-tag {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid #c7d7ee;
+  border-radius: 999px;
+  padding: 0.12rem 0.5rem;
+  background: #edf5ff;
+  color: #24527f;
+  font-size: 0.72em;
+  font-weight: 600;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.publication-tag--bayesian-optimization {
+  border-color: #a9d8c1;
+  background: #e9f8ef;
+  color: #16633f;
+}
+
+.publication-tag--statistical-learning {
+  border-color: #f2c078;
+  background: #fff4df;
+  color: #7a4a00;
+}
+
+.publication-tag--statistical-inference-for-bandits {
+  border-color: #c8b7ee;
+  background: #f2edff;
+  color: #51358f;
+}
