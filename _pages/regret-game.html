@@ -9,7 +9,7 @@ author_profile: true
   .rg { margin: 1em 0 2em; }
   .rg .rg-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5em 0.75em; font-size: 0.85em; }
   .rg .rg-controls label { margin: 0; }
-  .rg .rg-controls input[type="number"] { width: 7em; margin: 0.15em 0 0; }
+  .rg .rg-controls select { width: auto; min-width: 14em; margin: 0.15em 0 0; }
   .rg .rg-controls .btn { margin: 0; }
   .rg .rg-status { font-size: 0.9em; margin: 0.9em 0 0.3em; min-height: 1.5em; }
   .rg svg { display: block; width: 100%; height: auto; }
@@ -21,7 +21,11 @@ author_profile: true
   .rg .rg-gap { stroke: #e07b39; stroke-width: 1.5; stroke-dasharray: 3 3; }
   .rg .rg-pt { fill: var(--global-text-color); stroke: var(--global-bg-color); stroke-width: 1.5; }
   .rg .rg-pt-latest { fill: none; stroke: var(--global-text-color); stroke-width: 1.5; }
+  .rg .rg-pt2 { stroke: #222; stroke-width: 1.5; }
   .rg .rg-pt-label { font-size: 11px; text-anchor: middle; }
+  .rg .rg-halo { paint-order: stroke; stroke: var(--global-bg-color); stroke-width: 3px; stroke-linejoin: round; }
+  .rg svg text.rg-on-map { fill: #fff; stroke: rgba(0, 0, 0, 0.55); stroke-width: 2.5px; }
+  .rg .rg-frame { fill: none; stroke: var(--global-text-color-light); stroke-width: 1; }
   .rg .rg-hover { stroke: var(--global-text-color-light); stroke-width: 1; }
   .rg .rg-yours { fill: none; stroke: var(--global-link-color); stroke-width: 2.5; }
   .rg .rg-yours-dot { fill: var(--global-link-color); }
@@ -33,25 +37,40 @@ author_profile: true
   .rg td, .rg th { text-align: right; }
 </style>
 
-<p>A hidden function <em>f</em> lives on the interval [0, 1]. You have <strong>10 evaluations</strong>. At each step <em>t</em> you click on the plot to choose a point <em>x<sub>t</sub></em>, and you see the reward <em>f</em>(<em>x<sub>t</sub></em>). You do not know where the maximum is, or how high it is.</p>
+<p>A hidden function <em>f</em> lives on the interval [0, 1] (1-D games) or on the square [0, 1]<sup>2</sup> (2-D games). You have a fixed budget of evaluations: <strong>10 in a 1-D game</strong> and <strong>20 in a 2-D game</strong>. At each step <em>t</em> you click on the plot to choose a point <em>x<sub>t</sub></em>, and you see the reward <em>f</em>(<em>x<sub>t</sub></em>). You do not know where the maximum is, or how high it is.</p>
 
-<p>Your score is the <strong>cumulative regret</strong>: the total reward you lost compared with choosing the best point <em>x</em>* every time,</p>
+<p>Your score is the <strong>cumulative regret</strong> over the <em>T</em> steps: the total reward you lost compared with choosing the best point <em>x</em>* every time,</p>
 
-<p style="text-align:center"><em>R</em><sub>10</sub> = &sum;<sub><em>t</em>=1</sub><sup>10</sup> ( <em>f</em>(<em>x</em>*) &minus; <em>f</em>(<em>x<sub>t</sub></em>) ).</p>
+<p style="text-align:center"><em>R<sub>T</sub></em> = &sum;<sub><em>t</em>=1</sub><sup><em>T</em></sup> ( <em>f</em>(<em>x</em>*) &minus; <em>f</em>(<em>x<sub>t</sub></em>) ).</p>
 
-<p>Lower is better. Every evaluation counts, so you have to balance <strong>exploring</strong> new regions against <strong>exploiting</strong> the best region you have found so far. For a class competition, everyone enters the same game number and so plays the same hidden function.</p>
+<p>Lower is better. Every evaluation counts, so you have to balance <strong>exploring</strong> new regions against <strong>exploiting</strong> the best region you have found so far. There are five 1-D games and five 2-D games, and everyone who picks the same game plays the same hidden function, so scores can be compared directly.</p>
 
 <div class="rg" id="rg">
   <div class="rg-controls">
-    <label for="rg-game">Game number<br><input type="number" id="rg-game" min="1" max="99999" step="1" value="1"></label>
-    <button type="button" class="btn btn--info" id="rg-start">Start game</button>
-    <button type="button" class="btn" id="rg-random">Random game</button>
+    <label for="rg-game">Game<br>
+      <select id="rg-game">
+        <optgroup label="1-D games (10 evaluations)">
+          <option value="1d-1">1-D game 1</option>
+          <option value="1d-2">1-D game 2</option>
+          <option value="1d-3">1-D game 3</option>
+          <option value="1d-4">1-D game 4</option>
+          <option value="1d-5">1-D game 5</option>
+        </optgroup>
+        <optgroup label="2-D games (20 evaluations)">
+          <option value="2d-1">2-D game 1</option>
+          <option value="2d-2">2-D game 2</option>
+          <option value="2d-3">2-D game 3</option>
+          <option value="2d-4">2-D game 4</option>
+          <option value="2d-5">2-D game 5</option>
+        </optgroup>
+      </select>
+    </label>
+    <button type="button" class="btn btn--info" id="rg-restart">Restart game</button>
   </div>
 
   <p class="rg-status" id="rg-status" aria-live="polite"></p>
 
   <svg id="rg-plot" viewBox="0 0 720 340" role="img" aria-label="Your evaluations of the hidden function"></svg>
-
   <div id="rg-result" class="rg-hidden">
     <div class="rg-summary" id="rg-summary"></div>
     <svg id="rg-regret" viewBox="0 0 720 230" role="img" aria-label="Cumulative regret over the 10 steps"></svg>
@@ -59,7 +78,7 @@ author_profile: true
 
   <table>
     <thead>
-      <tr><th>Step <em>t</em></th><th><em>x<sub>t</sub></em></th><th><em>f</em>(<em>x<sub>t</sub></em>)</th><th>Regret</th><th>Cumulative regret</th></tr>
+      <tr><th>Step <em>t</em></th><th id="rg-x-head"><em>x<sub>t</sub></em></th><th><em>f</em>(<em>x<sub>t</sub></em>)</th><th>Regret</th><th>Cumulative regret</th></tr>
     </thead>
     <tbody id="rg-table"></tbody>
   </table>
