@@ -13,8 +13,9 @@ author_profile: true
     gap: 0.25em 1.25em;
     font-size: 0.8em;
   }
+  .bo-demo .bo-controls > div { min-width: 0; }
   .bo-demo .bo-controls label { margin-bottom: 0.15em; }
-  .bo-demo .bo-controls select { margin-bottom: 0.4em; }
+  .bo-demo .bo-controls select { width: 100%; margin-bottom: 0.4em; }
   .bo-demo .bo-controls input[type="range"] {
     padding: 0;
     border: 0;
@@ -99,8 +100,8 @@ author_profile: true
 
   <div class="bo-buttons">
     <button type="button" class="btn btn--info" id="bo-step">Next step</button>
-    <button type="button" class="btn btn--inverse" id="bo-play">Play</button>
-    <button type="button" class="btn btn--inverse" id="bo-reset">Reset</button>
+    <button type="button" class="btn" id="bo-play">Play</button>
+    <button type="button" class="btn" id="bo-reset">Reset</button>
     <label class="bo-check"><input type="checkbox" id="bo-truth" checked> Show true function</label>
   </div>
 
