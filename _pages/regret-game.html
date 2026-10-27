@@ -1,6 +1,6 @@
 ---
 layout: single
-title: "Find the Peak: A Sequential Decision Game"
+title: "Bake the Best Cake: A Sequential Decision Game"
 permalink: /regret-game/
 author_profile: true
 ---
@@ -13,6 +13,11 @@ author_profile: true
   .rg .rg-controls .btn { margin: 0; }
   .rg .rg-status { font-size: 0.9em; margin: 0.9em 0 0.3em; min-height: 1.5em; }
   .rg svg { display: block; width: 100%; height: auto; }
+  .rg .rg-plot-wrap { position: relative; }
+  .rg .rg-toast { position: absolute; top: 6%; right: 2%; display: flex; align-items: center; gap: 0.75em; max-width: 21em; padding: 0.6em 0.9em; font-size: 0.8em; line-height: 1.35; background: var(--global-bg-color); border: 1px solid var(--global-border-color); border-radius: 8px; box-shadow: 0 4px 14px rgba(0, 0, 0, 0.15); pointer-events: none; opacity: 0; transform: translateY(-6px); transition: opacity 0.25s, transform 0.25s; }
+  .rg .rg-toast.rg-left { right: auto; left: 12%; }
+  .rg .rg-toast.rg-show { opacity: 1; transform: none; }
+  .rg .rg-toast svg { width: 84px; flex: none; }
   .rg svg text { fill: var(--global-text-color); font-size: 13px; font-family: inherit; }
   .rg .rg-axis { stroke: var(--global-text-color-light); stroke-width: 1; }
   .rg .rg-gridline { stroke: var(--global-border-color); stroke-width: 1; }
@@ -37,26 +42,40 @@ author_profile: true
   .rg td, .rg th { text-align: right; }
 </style>
 
-<p>A hidden function <em>f</em> lives on the interval [0, 1] (1-D games) or on the square [0, 1]<sup>2</sup> (2-D games). You have a fixed budget of evaluations: <strong>10 in a 1-D game</strong> and <strong>20 in a 2-D game</strong>. At each step <em>t</em> you click on the plot to choose a point <em>x<sub>t</sub></em>, and you see the reward <em>f</em>(<em>x<sub>t</sub></em>). You do not know where the maximum is, or how high it is.</p>
+<h2>How to play</h2>
 
-<p>Your score is the <strong>cumulative regret</strong> over the <em>T</em> steps: the total reward you lost compared with choosing the best point <em>x</em>* every time,</p>
+<p>Imagine you are a baker trying to create the tastiest cake. Every cake you bake gets a <strong>taste score out of 5</strong>, but you do not know which recipe gives the best taste.</p>
 
-<p style="text-align:center"><em>R<sub>T</sub></em> = &sum;<sub><em>t</em>=1</sub><sup><em>T</em></sup> ( <em>f</em>(<em>x</em>*) &minus; <em>f</em>(<em>x<sub>t</sub></em>) ).</p>
+<ul>
+  <li><strong>1-D games:</strong> you control the <strong>amount of sugar</strong> (0&ndash;200 g), and you can bake <strong>10 cakes</strong>.</li>
+  <li><strong>2-D games:</strong> you control the <strong>amount of sugar</strong> and the <strong>oven temperature</strong> (150&ndash;230 &deg;C), and you can bake <strong>20 cakes</strong>.</li>
+</ul>
 
-<p>Lower is better. Every evaluation counts, so you have to balance <strong>exploring</strong> new regions against <strong>exploiting</strong> the best region you have found so far. There are five 1-D games and five 2-D games, and everyone who picks the same game plays the same hidden function, so scores can be compared directly.</p>
+<ol>
+  <li>Choose a game from the menu below. Everyone who picks the same game bakes with the same hidden taste function, so scores can be compared.</li>
+  <li>Click on the plot to choose a recipe and bake a cake. Its taste is revealed straight away. Bake a cake scoring above 4.5 and you have made a masterpiece; score below 1 and it comes out burnt.</li>
+  <li>Use what you have tasted so far to decide on the next recipe, until you have used up all your cakes.</li>
+  <li>When the game is over, the true taste of every recipe is revealed, together with your score.</li>
+</ol>
+
+<p><strong>Your goal is to find the recipe with the best taste.</strong> But every cake you bake is sold to a customer, so every bad cake costs you. Your score is the <strong>cumulative regret</strong>: for each cake, how much taste it lost compared with the best possible cake <em>x</em>*, added up over all <em>T</em> cakes,</p>
+
+<p style="text-align:center"><em>R<sub>T</sub></em> = &sum;<sub><em>t</em>=1</sub><sup><em>T</em></sup> ( <em>f</em>(<em>x</em>*) &minus; <em>f</em>(<em>x<sub>t</sub></em>) ),</p>
+
+<p>where <em>f</em>(<em>x<sub>t</sub></em>) is the taste of your <em>t</em>-th cake. <strong>Lower is better.</strong> To do well you have to balance <strong>exploring</strong> new recipes against <strong>exploiting</strong> the best recipe you have found so far.</p>
 
 <div class="rg" id="rg">
   <div class="rg-controls">
     <label for="rg-game">Game<br>
       <select id="rg-game">
-        <optgroup label="1-D games (10 evaluations)">
+        <optgroup label="1-D games: sugar (10 cakes)">
           <option value="1d-1">1-D game 1</option>
           <option value="1d-2">1-D game 2</option>
           <option value="1d-3">1-D game 3</option>
           <option value="1d-4">1-D game 4</option>
           <option value="1d-5">1-D game 5</option>
         </optgroup>
-        <optgroup label="2-D games (20 evaluations)">
+        <optgroup label="2-D games: sugar and oven (20 cakes)">
           <option value="2d-1">2-D game 1</option>
           <option value="2d-2">2-D game 2</option>
           <option value="2d-3">2-D game 3</option>
@@ -70,16 +89,17 @@ author_profile: true
 
   <p class="rg-status" id="rg-status" aria-live="polite"></p>
 
-  <svg id="rg-plot" viewBox="0 0 720 340" role="img" aria-label="Your evaluations of the hidden function"></svg>
+  <div class="rg-plot-wrap">
+    <svg id="rg-plot" viewBox="0 0 720 345" role="img" aria-label="The cakes you have baked and their taste"></svg>
+    <div class="rg-toast" id="rg-toast" aria-live="polite"></div>
+  </div>
   <div id="rg-result" class="rg-hidden">
     <div class="rg-summary" id="rg-summary"></div>
     <svg id="rg-regret" viewBox="0 0 720 230" role="img" aria-label="Cumulative regret over the 10 steps"></svg>
   </div>
 
   <table>
-    <thead>
-      <tr><th>Step <em>t</em></th><th id="rg-x-head"><em>x<sub>t</sub></em></th><th><em>f</em>(<em>x<sub>t</sub></em>)</th><th>Regret</th><th>Cumulative regret</th></tr>
-    </thead>
+    <thead id="rg-thead"></thead>
     <tbody id="rg-table"></tbody>
   </table>
 </div>

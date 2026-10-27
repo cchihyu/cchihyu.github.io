@@ -11,7 +11,7 @@ My research lies at the intersection of statistics and machine learning. I am es
 
 I work on inference and evaluation problems for adaptive data collection procedures, including bandit algorithms and policy evaluation. A recurring theme is how to quantify uncertainty when the data distribution is shaped by previous decisions.
 
-To get a feel for the exploration–exploitation trade-off, try the [Find the Peak game](/regret-game/).
+To get a feel for the exploration–exploitation trade-off, try the [Bake the Best Cake game](/regret-game/).
 
 ## Bayesian Optimization
 
