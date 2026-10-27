@@ -1,0 +1,68 @@
+---
+layout: single
+title: "Find the Peak: A Sequential Decision Game"
+permalink: /regret-game/
+author_profile: true
+---
+
+<style>
+  .rg { margin: 1em 0 2em; }
+  .rg .rg-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5em 0.75em; font-size: 0.85em; }
+  .rg .rg-controls label { margin: 0; }
+  .rg .rg-controls input[type="number"] { width: 7em; margin: 0.15em 0 0; }
+  .rg .rg-controls .btn { margin: 0; }
+  .rg .rg-status { font-size: 0.9em; margin: 0.9em 0 0.3em; min-height: 1.5em; }
+  .rg svg { display: block; width: 100%; height: auto; }
+  .rg svg text { fill: var(--global-text-color); font-size: 13px; font-family: inherit; }
+  .rg .rg-axis { stroke: var(--global-text-color-light); stroke-width: 1; }
+  .rg .rg-gridline { stroke: var(--global-border-color); stroke-width: 1; }
+  .rg .rg-truth { fill: none; stroke: var(--global-link-color); stroke-width: 2.5; }
+  .rg .rg-star { fill: #e07b39; }
+  .rg .rg-gap { stroke: #e07b39; stroke-width: 1.5; stroke-dasharray: 3 3; }
+  .rg .rg-pt { fill: var(--global-text-color); stroke: var(--global-bg-color); stroke-width: 1.5; }
+  .rg .rg-pt-latest { fill: none; stroke: var(--global-text-color); stroke-width: 1.5; }
+  .rg .rg-pt-label { font-size: 11px; text-anchor: middle; }
+  .rg .rg-hover { stroke: var(--global-text-color-light); stroke-width: 1; }
+  .rg .rg-yours { fill: none; stroke: var(--global-link-color); stroke-width: 2.5; }
+  .rg .rg-yours-dot { fill: var(--global-link-color); }
+  .rg .rg-random { fill: none; stroke: var(--global-text-color-light); stroke-width: 2; stroke-dasharray: 6 4; }
+  .rg .rg-title { font-weight: 600; }
+  .rg .rg-hidden { display: none; }
+  .rg .rg-summary { font-size: 0.9em; margin: 1em 0 0.5em; padding: 0.75em 1em; border-left: 4px solid var(--global-link-color); background: var(--global-border-color); }
+  .rg table { font-size: 0.8em; margin-top: 0.75em; font-variant-numeric: tabular-nums; }
+  .rg td, .rg th { text-align: right; }
+</style>
+
+<p>A hidden function <em>f</em> lives on the interval [0, 1]. You have <strong>10 evaluations</strong>. At each step <em>t</em> you click on the plot to choose a point <em>x<sub>t</sub></em>, and you see the reward <em>f</em>(<em>x<sub>t</sub></em>). You do not know where the maximum is, or how high it is.</p>
+
+<p>Your score is the <strong>cumulative regret</strong>: the total reward you lost compared with choosing the best point <em>x</em>* every time,</p>
+
+<p style="text-align:center"><em>R</em><sub>10</sub> = &sum;<sub><em>t</em>=1</sub><sup>10</sup> ( <em>f</em>(<em>x</em>*) &minus; <em>f</em>(<em>x<sub>t</sub></em>) ).</p>
+
+<p>Lower is better. Every evaluation counts, so you have to balance <strong>exploring</strong> new regions against <strong>exploiting</strong> the best region you have found so far. For a class competition, everyone enters the same game number and so plays the same hidden function.</p>
+
+<div class="rg" id="rg">
+  <div class="rg-controls">
+    <label for="rg-game">Game number<br><input type="number" id="rg-game" min="1" max="99999" step="1" value="1"></label>
+    <button type="button" class="btn btn--info" id="rg-start">Start game</button>
+    <button type="button" class="btn" id="rg-random">Random game</button>
+  </div>
+
+  <p class="rg-status" id="rg-status" aria-live="polite"></p>
+
+  <svg id="rg-plot" viewBox="0 0 720 340" role="img" aria-label="Your evaluations of the hidden function"></svg>
+
+  <div id="rg-result" class="rg-hidden">
+    <div class="rg-summary" id="rg-summary"></div>
+    <svg id="rg-regret" viewBox="0 0 720 230" role="img" aria-label="Cumulative regret over the 10 steps"></svg>
+  </div>
+
+  <table>
+    <thead>
+      <tr><th>Step <em>t</em></th><th><em>x<sub>t</sub></em></th><th><em>f</em>(<em>x<sub>t</sub></em>)</th><th>Regret</th><th>Cumulative regret</th></tr>
+    </thead>
+    <tbody id="rg-table"></tbody>
+  </table>
+</div>
+
+<script src="{{ '/assets/js/regret-game.js' | relative_url }}" defer></script>
