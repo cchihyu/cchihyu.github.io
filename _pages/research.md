@@ -16,6 +16,7 @@ To get a feel for the exploration–exploitation trade-off, try the [Bake the Be
 ## Bayesian Optimization
 
 I study Bayesian optimization methods for expensive black-box systems, with applications involving collaboration, trustworthiness, and feedback from human experts or large language models.
+
 ## Federated and Collaborative Learning
 
 My work also studies statistical learning and optimization across distributed agents or institutions, where privacy, heterogeneity, and communication constraints shape what can be learned.
