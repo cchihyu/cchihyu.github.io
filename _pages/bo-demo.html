@@ -1,0 +1,133 @@
+---
+layout: single
+title: "Interactive Bayesian Optimization"
+permalink: /bo-demo/
+author_profile: true
+---
+
+<style>
+  .bo-demo { margin: 1em 0 2em; }
+  .bo-demo .bo-controls {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+    gap: 0.25em 1.25em;
+    font-size: 0.8em;
+  }
+  .bo-demo .bo-controls label { margin-bottom: 0.15em; }
+  .bo-demo .bo-controls select { margin-bottom: 0.4em; }
+  .bo-demo .bo-controls input[type="range"] {
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    background: transparent;
+    margin-bottom: 0.4em;
+  }
+  .bo-demo .bo-check { display: flex; align-items: center; gap: 0.4em; }
+  .bo-demo .bo-value { color: var(--global-text-color-light); font-variant-numeric: tabular-nums; }
+  .bo-demo .bo-hidden { display: none; }
+  .bo-demo .bo-buttons { display: flex; flex-wrap: wrap; gap: 0.5em; align-items: center; margin: 0.5em 0 0.75em; }
+  .bo-demo .bo-buttons .btn { margin: 0; }
+  .bo-demo .bo-buttons .bo-check { font-size: 0.8em; margin: 0 0 0 0.5em; }
+  .bo-demo svg { display: block; width: 100%; height: auto; touch-action: manipulation; }
+  .bo-demo svg text { fill: var(--global-text-color); font-size: 12px; font-family: inherit; }
+  .bo-demo .bo-axis { stroke: var(--global-text-color-light); stroke-width: 1; }
+  .bo-demo .bo-gridline { stroke: var(--global-border-color); stroke-width: 1; }
+  .bo-demo .bo-band { fill: var(--global-link-color); fill-opacity: 0.18; }
+  .bo-demo .bo-mean { fill: none; stroke: var(--global-link-color); stroke-width: 2.5; }
+  .bo-demo .bo-truth { fill: none; stroke: var(--global-text-color); stroke-opacity: 0.55; stroke-width: 1.5; stroke-dasharray: 5 4; }
+  .bo-demo .bo-sample { fill: none; stroke: #e07b39; stroke-width: 1.25; stroke-opacity: 0.8; }
+  .bo-demo .bo-obs { fill: var(--global-text-color); stroke: var(--global-bg-color); stroke-width: 1.5; }
+  .bo-demo .bo-obs-latest { fill: none; stroke: var(--global-text-color); stroke-width: 1.5; }
+  .bo-demo .bo-best { fill: none; stroke: #e07b39; stroke-width: 2.5; }
+  .bo-demo .bo-acq-area { fill: #e07b39; fill-opacity: 0.2; }
+  .bo-demo .bo-acq-line { fill: none; stroke: #e07b39; stroke-width: 2; }
+  .bo-demo .bo-next { stroke: #e07b39; stroke-width: 1.5; stroke-dasharray: 3 3; }
+  .bo-demo .bo-next-marker { fill: #e07b39; }
+  .bo-demo .bo-hover { stroke: var(--global-text-color-light); stroke-width: 1; pointer-events: none; }
+  .bo-demo .bo-panel-title { font-weight: 600; }
+  .bo-demo .bo-legend { display: flex; flex-wrap: wrap; gap: 0.35em 1.25em; font-size: 0.75em; margin: 0.4em 0 0; }
+  .bo-demo .bo-legend span { display: inline-flex; align-items: center; gap: 0.4em; }
+  .bo-demo .bo-swatch { display: inline-block; width: 18px; height: 0; border-top: 2.5px solid; }
+  .bo-demo .bo-swatch.gp { border-color: var(--global-link-color); }
+  .bo-demo .bo-swatch.band { height: 10px; border: 0; background: var(--global-link-color); opacity: 0.25; }
+  .bo-demo .bo-swatch.truth { border-top: 2px dashed var(--global-text-color); opacity: 0.6; }
+  .bo-demo .bo-swatch.acq { border-color: #e07b39; }
+  .bo-demo .bo-swatch.dot { width: 9px; height: 9px; border: 0; border-radius: 50%; background: var(--global-text-color); }
+  .bo-demo .bo-stats { display: flex; flex-wrap: wrap; gap: 0.35em 1.5em; font-size: 0.8em; margin-top: 0.6em; font-variant-numeric: tabular-nums; }
+  .bo-demo .bo-stats b { font-weight: 600; }
+  .bo-demo .bo-message { font-size: 0.8em; color: var(--global-text-color-light); min-height: 1.5em; margin: 0.3em 0 0; }
+</style>
+
+<p>Bayesian optimization finds the maximum of an expensive black-box function with as few evaluations as possible. It fits a probabilistic surrogate (here a Gaussian process) to the points evaluated so far. An <em>acquisition function</em> then uses the surrogate's mean and uncertainty to decide where to evaluate next, trading off <strong>exploitation</strong> (sampling where the surrogate predicts high values) against <strong>exploration</strong> (sampling where it is uncertain).</p>
+
+<p>Press <strong>Next step</strong> to let the algorithm choose the next point, or <strong>click anywhere on the plot</strong> to evaluate the function there yourself.</p>
+
+<div class="bo-demo" id="bo-demo">
+  <div class="bo-controls">
+    <div>
+      <label for="bo-objective">Objective</label>
+      <select id="bo-objective">
+        <option value="bumps">Two bumps</option>
+        <option value="forrester">Forrester function</option>
+        <option value="needle">Needle in a haystack</option>
+        <option value="random">Random function (GP draw)</option>
+      </select>
+    </div>
+    <div>
+      <label for="bo-acq">Acquisition function</label>
+      <select id="bo-acq">
+        <option value="ei">Expected improvement (EI)</option>
+        <option value="ucb">Upper confidence bound (UCB)</option>
+        <option value="pi">Probability of improvement (PI)</option>
+        <option value="ts">Thompson sampling</option>
+      </select>
+    </div>
+    <div id="bo-kappa-wrap" class="bo-hidden">
+      <label for="bo-kappa">UCB exploration &kappa; <span class="bo-value" id="bo-kappa-val"></span></label>
+      <input type="range" id="bo-kappa" min="0" max="5" step="0.1" value="2">
+    </div>
+    <div>
+      <label for="bo-ell">Kernel length scale &#8467; <span class="bo-value" id="bo-ell-val"></span></label>
+      <input type="range" id="bo-ell" min="-1.6" max="-0.3" step="0.01" value="-1">
+      <label class="bo-check"><input type="checkbox" id="bo-autofit"> Fit &#8467; by maximum likelihood</label>
+    </div>
+    <div>
+      <label for="bo-noise">Observation noise <span class="bo-value" id="bo-noise-val"></span></label>
+      <input type="range" id="bo-noise" min="0" max="20" step="1" value="0">
+    </div>
+  </div>
+
+  <div class="bo-buttons">
+    <button type="button" class="btn btn--info" id="bo-step">Next step</button>
+    <button type="button" class="btn btn--inverse" id="bo-play">Play</button>
+    <button type="button" class="btn btn--inverse" id="bo-reset">Reset</button>
+    <label class="bo-check"><input type="checkbox" id="bo-truth" checked> Show true function</label>
+  </div>
+
+  <svg id="bo-plot" viewBox="0 0 720 450" role="img" aria-label="Gaussian process surrogate, observations and acquisition function"></svg>
+
+  <div class="bo-legend">
+    <span><i class="bo-swatch dot"></i>Evaluations</span>
+    <span><i class="bo-swatch gp"></i>GP mean</span>
+    <span><i class="bo-swatch band"></i>95% credible band</span>
+    <span><i class="bo-swatch truth"></i>True function</span>
+    <span><i class="bo-swatch acq"></i>Acquisition / next query</span>
+  </div>
+
+  <div class="bo-stats" id="bo-stats" aria-live="polite"></div>
+  <p class="bo-message" id="bo-message"></p>
+</div>
+
+<h2>What to try</h2>
+
+<ul>
+  <li><strong>Exploration vs. exploitation.</strong> Switch to UCB and move &kappa;. With &kappa; = 0 the algorithm only follows the GP mean and can get stuck on a local maximum; a large &kappa; sends it to wherever the band is widest.</li>
+  <li><strong>Needle in a haystack.</strong> A narrow peak is invisible to a smooth surrogate until a point lands near it, so purely greedy strategies tend to miss it.</li>
+  <li><strong>Length scale.</strong> The kernel length scale sets how smooth the GP believes the function is. Too large and the surrogate is overconfident between points; too small and it learns almost nothing from nearby evaluations. Tick &ldquo;Fit by maximum likelihood&rdquo; to let the data choose it.</li>
+  <li><strong>Noise.</strong> With noisy evaluations the GP no longer passes through the points, and repeated sampling of a good region becomes worthwhile.</li>
+  <li><strong>Thompson sampling.</strong> Each step draws one random function from the GP posterior (the orange curve) and queries its maximum, so repeated runs from the same data can choose different points.</li>
+</ul>
+
+<p>The surrogate is a zero-mean Gaussian process with a squared-exponential kernel, fitted to standardized observations; all computation runs in your browser. For my research on Bayesian optimization, see <a href="/research/">Research</a> and <a href="/publications/">Publications</a>.</p>
+
+<script src="{{ '/assets/js/bo-demo.js' | relative_url }}" defer></script>

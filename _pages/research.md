@@ -15,6 +15,8 @@ I work on inference and evaluation problems for adaptive data collection procedu
 
 I study Bayesian optimization methods for expensive black-box systems, with applications involving collaboration, trustworthiness, and feedback from human experts or large language models.
 
+To see how Bayesian optimization works, try the [interactive demo](/bo-demo/).
+
 ## Federated and Collaborative Learning
 
 My work also studies statistical learning and optimization across distributed agents or institutions, where privacy, heterogeneity, and communication constraints shape what can be learned.
