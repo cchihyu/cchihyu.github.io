@@ -9,7 +9,7 @@ author_profile: true
   .rg { margin: 1em 0 2em; }
   .rg .rg-controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5em 0.75em; font-size: 0.85em; }
   .rg .rg-controls label { margin: 0; }
-  .rg .rg-controls select { width: auto; min-width: 14em; margin: 0.15em 0 0; }
+  .rg .rg-controls select { width: auto; min-width: 9em; margin: 0.15em 0 0; }
   .rg .rg-controls .btn { margin: 0; }
   .rg .rg-status { font-size: 0.9em; margin: 0.9em 0 0.3em; min-height: 1.5em; }
   .rg svg { display: block; width: 100%; height: auto; }
@@ -19,69 +19,35 @@ author_profile: true
   .rg .rg-toast.rg-show { opacity: 1; transform: none; }
   .rg .rg-toast svg { width: 84px; flex: none; }
   .rg svg text { fill: var(--global-text-color); font-size: 13px; font-family: inherit; }
-  .rg .rg-axis { stroke: var(--global-text-color-light); stroke-width: 1; }
   .rg .rg-gridline { stroke: var(--global-border-color); stroke-width: 1; }
-  .rg .rg-truth { fill: none; stroke: var(--global-link-color); stroke-width: 2.5; }
+  .rg .rg-frame { fill: none; stroke: var(--global-text-color-light); stroke-width: 1; }
+  .rg .rg-hover { stroke: var(--global-text-color-light); stroke-width: 1; }
   .rg .rg-star { fill: #e07b39; }
-  .rg .rg-gap { stroke: #e07b39; stroke-width: 1.5; stroke-dasharray: 3 3; }
-  .rg .rg-pt { fill: var(--global-text-color); stroke: var(--global-bg-color); stroke-width: 1.5; }
+  .rg .rg-pt { stroke: #222; stroke-width: 1.5; }
   .rg .rg-pt-latest { fill: none; stroke: var(--global-text-color); stroke-width: 1.5; }
-  .rg .rg-pt2 { stroke: #222; stroke-width: 1.5; }
+  .rg .rg-pt-best { fill: none; stroke: #e07b39; stroke-width: 2.5; }
   .rg .rg-pt-label { font-size: 11px; text-anchor: middle; }
   .rg .rg-halo { paint-order: stroke; stroke: var(--global-bg-color); stroke-width: 3px; stroke-linejoin: round; }
   .rg svg text.rg-on-map { fill: #fff; stroke: rgba(0, 0, 0, 0.55); stroke-width: 2.5px; }
-  .rg .rg-frame { fill: none; stroke: var(--global-text-color-light); stroke-width: 1; }
-  .rg .rg-hover { stroke: var(--global-text-color-light); stroke-width: 1; }
-  .rg .rg-yours { fill: none; stroke: var(--global-link-color); stroke-width: 2.5; }
-  .rg .rg-yours-dot { fill: var(--global-link-color); }
-  .rg .rg-random { fill: none; stroke: var(--global-text-color-light); stroke-width: 2; stroke-dasharray: 6 4; }
   .rg .rg-title { font-weight: 600; }
   .rg .rg-hidden { display: none; }
   .rg .rg-summary { font-size: 0.9em; margin: 1em 0 0.5em; padding: 0.75em 1em; border-left: 4px solid var(--global-link-color); background: var(--global-border-color); }
   .rg table { font-size: 0.8em; margin-top: 0.75em; font-variant-numeric: tabular-nums; }
   .rg td, .rg th { text-align: right; }
+  .rg tr.rg-best-row td { font-weight: 600; }
 </style>
 
-<h2>How to play</h2>
-
-<p>Imagine you are a baker trying to create the tastiest cake. Every cake you bake gets a <strong>taste score out of 5</strong>, but you do not know which recipe gives the best taste.</p>
-
-<ul>
-  <li><strong>1-D games:</strong> you control the <strong>amount of sugar</strong> (0&ndash;200 g), and you can bake <strong>10 cakes</strong>.</li>
-  <li><strong>2-D games:</strong> you control the <strong>amount of sugar</strong> and the <strong>oven temperature</strong> (150&ndash;230 &deg;C), and you can bake <strong>20 cakes</strong>.</li>
-</ul>
-
-<ol>
-  <li>Choose a game from the menu below. Everyone who picks the same game bakes with the same hidden taste function, so scores can be compared.</li>
-  <li>Click on the plot to choose a recipe and bake a cake. Its taste is revealed straight away. Bake a cake scoring above 4.5 and you have made a masterpiece; score below 1 and it comes out burnt.</li>
-  <li>Use what you have tasted so far to decide on the next recipe, until you have used up all your cakes.</li>
-  <li>When the game is over, the true taste of every recipe is revealed, together with your score.</li>
-</ol>
-
-<p><strong>Your goal is to find the recipe with the best taste.</strong> But every cake you bake is sold to a customer, so every bad cake costs you. Your score is the <strong>cumulative regret</strong>: for each cake, how much taste it lost compared with the best possible cake <em>x</em>*, added up over all <em>T</em> cakes,</p>
-
-<p style="text-align:center"><em>R<sub>T</sub></em> = &sum;<sub><em>t</em>=1</sub><sup><em>T</em></sup> ( <em>f</em>(<em>x</em>*) &minus; <em>f</em>(<em>x<sub>t</sub></em>) ),</p>
-
-<p>where <em>f</em>(<em>x<sub>t</sub></em>) is the taste of your <em>t</em>-th cake. <strong>Lower is better.</strong> To do well you have to balance <strong>exploring</strong> new recipes against <strong>exploiting</strong> the best recipe you have found so far.</p>
+<p>Imagine you are baking a cake and want it to taste as good as possible. You control two things: the <strong>amount of sugar</strong> (0&ndash;200 g) and the <strong>oven temperature</strong> (150&ndash;230 &deg;C). You can bake <strong>20 cakes</strong>. Click on the plot to choose a recipe, and the cake's taste (out of 5) is revealed after each click. Your goal is to find the recipe with the best taste: <strong>your score is the best taste among the cakes you bake.</strong></p>
 
 <div class="rg" id="rg">
   <div class="rg-controls">
     <label for="rg-game">Game<br>
       <select id="rg-game">
-        <optgroup label="1-D games: sugar (10 cakes)">
-          <option value="1d-1">1-D game 1</option>
-          <option value="1d-2">1-D game 2</option>
-          <option value="1d-3">1-D game 3</option>
-          <option value="1d-4">1-D game 4</option>
-          <option value="1d-5">1-D game 5</option>
-        </optgroup>
-        <optgroup label="2-D games: sugar and oven (20 cakes)">
-          <option value="2d-1">2-D game 1</option>
-          <option value="2d-2">2-D game 2</option>
-          <option value="2d-3">2-D game 3</option>
-          <option value="2d-4">2-D game 4</option>
-          <option value="2d-5">2-D game 5</option>
-        </optgroup>
+        <option value="1">Game 1</option>
+        <option value="2">Game 2</option>
+        <option value="3">Game 3</option>
+        <option value="4">Game 4</option>
+        <option value="5">Game 5</option>
       </select>
     </label>
     <button type="button" class="btn btn--info" id="rg-restart">Restart game</button>
@@ -90,16 +56,14 @@ author_profile: true
   <p class="rg-status" id="rg-status" aria-live="polite"></p>
 
   <div class="rg-plot-wrap">
-    <svg id="rg-plot" viewBox="0 0 720 345" role="img" aria-label="The cakes you have baked and their taste"></svg>
+    <svg id="rg-plot" viewBox="0 0 720 520" role="img" aria-label="The cakes you have baked and their taste"></svg>
     <div class="rg-toast" id="rg-toast" aria-live="polite"></div>
   </div>
-  <div id="rg-result" class="rg-hidden">
-    <div class="rg-summary" id="rg-summary"></div>
-    <svg id="rg-regret" viewBox="0 0 720 230" role="img" aria-label="Cumulative regret over the 10 steps"></svg>
-  </div>
+
+  <div class="rg-summary rg-hidden" id="rg-summary"></div>
 
   <table>
-    <thead id="rg-thead"></thead>
+    <thead><tr><th>Cake</th><th>Sugar (g)</th><th>Oven (&deg;C)</th><th>Taste (/5)</th></tr></thead>
     <tbody id="rg-table"></tbody>
   </table>
 </div>

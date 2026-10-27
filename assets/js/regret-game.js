@@ -1,34 +1,30 @@
-/* "Bake the best cake" games for teaching cumulative regret, used on /regret-game/. */
+/* "Bake the best cake" game for teaching sequential decision making, used on /regret-game/. */
 (function () {
   "use strict";
 
   // Fixed games. The seeds were chosen so that each maximum is away from the boundary
-  // and each function has a tempting second peak.
-  var SEEDS = { 1: [41, 1, 43, 21, 61], 2: [1, 3, 5, 7, 8] };
-  var BUDGET = { 1: 10, 2: 20 };
+  // and each taste function has a tempting second peak.
+  var SEEDS = [1, 3, 5, 7, 8];
+  var BUDGET = 20;
   var TASTE_MAX = 5;
   var SUGAR = [0, 200];    // grams
   var OVEN = [150, 230];   // degrees Celsius
-  var HEAT = 60;           // heat-map cells per side when a 2-D game is revealed
+  var HEAT = 60;           // heat-map cells per side when the taste is revealed
   var BURNT = 1, NICE = 4.5; // taste thresholds for the cake pictures
 
   // SVG layout (viewBox units)
-  var W = 720, PAD_L = 40, PAD_R = 14, PLOT_W = W - PAD_L - PAD_R;
-  var MAIN_Y = 28, MAIN_H = 272;                // 1-D plot
-  var SQ_X = 140, SQ_Y = 28, SQ = 440;          // 2-D plot (square)
-  var BAR_X = SQ_X + SQ + 24, BAR_W = 16;       // colour bar next to the square
-  var REG_Y = 28, REG_H = 160;                  // cumulative regret chart
+  var SQ_X = 140, SQ_Y = 28, SQ = 440;          // the recipe square
+  var BAR_X = SQ_X + SQ + 24, BAR_W = 16;       // colour bar next to it
 
   var el = function (id) { return document.getElementById(id); };
   var plot = el("rg-plot");
   if (!plot) return;
   var ui = {
     game: el("rg-game"), restart: el("rg-restart"), toast: el("rg-toast"),
-    status: el("rg-status"), result: el("rg-result"), summary: el("rg-summary"),
-    regret: el("rg-regret"), thead: el("rg-thead"), table: el("rg-table")
+    status: el("rg-status"), summary: el("rg-summary"), table: el("rg-table")
   };
 
-  // ----------------------------------------------------------- hidden functions
+  // ------------------------------------------------------------ hidden taste
 
   function mulberry32(seed) {
     return function () {
@@ -39,60 +35,37 @@
     };
   }
 
-  // A sum of random Gaussian bumps on [0, 1]^dim; the seed fixes everything, so every
+  // A sum of random Gaussian bumps on [0, 1]^2; the seed fixes everything, so every
   // student sees the same function. Inputs are rescaled to grams and degrees only for display.
-  function makeGame(id) {
-    var dim = Number(id.charAt(0)), seed = SEEDS[dim][Number(id.slice(3)) - 1];
-    var rand = mulberry32(seed * 7919 + 13 + (dim === 2 ? 500009 : 0));
-    var k = dim === 1 ? 4 + Math.floor(rand() * 3) : 6 + Math.floor(rand() * 4), bumps = [], i, j, d;
+  function makeGame(number) {
+    var rand = mulberry32(SEEDS[number - 1] * 7919 + 13 + 500009);
+    var k = 6 + Math.floor(rand() * 4), bumps = [], i, j;
     for (j = 0; j < k; j++) {
-      var c = [];
-      for (d = 0; d < dim; d++) c.push(0.04 + 0.92 * rand());
-      bumps.push({ a: 0.3 + 0.7 * rand(), c: c, w: dim === 1 ? 0.03 + 0.09 * rand() : 0.06 + 0.1 * rand() });
+      var c = [0.04 + 0.92 * rand(), 0.04 + 0.92 * rand()]; // drawn before a and w; the seeds depend on this order
+      bumps.push({ a: 0.3 + 0.7 * rand(), c: c, w: 0.06 + 0.1 * rand() });
     }
     var raw = function (p) {
       var s = 0;
       for (var b = 0; b < bumps.length; b++) {
-        var q = 0;
-        for (var dd = 0; dd < dim; dd++) {
-          var z = (p[dd] - bumps[b].c[dd]) / bumps[b].w;
-          q += z * z;
-        }
-        s += bumps[b].a * Math.exp(-0.5 * q);
+        var z1 = (p[0] - bumps[b].c[0]) / bumps[b].w, z2 = (p[1] - bumps[b].c[1]) / bumps[b].w;
+        s += bumps[b].a * Math.exp(-0.5 * (z1 * z1 + z2 * z2));
       }
       return s;
     };
 
-    var n = dim === 1 ? 1001 : 201, pts = [];
-    for (i = 0; i < n; i++) {
-      if (dim === 1) pts.push([i / (n - 1)]);
-      else for (j = 0; j < n; j++) pts.push([i / (n - 1), j / (n - 1)]);
-    }
-    var rMin = Infinity, rMax = -Infinity, rMean = 0, best = 0;
-    for (i = 0; i < pts.length; i++) {
-      var v = raw(pts[i]);
+    var n = 201, rMin = Infinity, rMax = -Infinity, best = null;
+    for (i = 0; i < n; i++) for (j = 0; j < n; j++) {
+      var p = [i / (n - 1), j / (n - 1)], v = raw(p);
       if (v < rMin) rMin = v;
-      if (v > rMax) { rMax = v; best = i; }
-      rMean += v / pts.length;
+      if (v > rMax) { rMax = v; best = p; }
     }
     // The best cake always scores above NICE, so finding the peak earns the nice-cake picture.
     var bottom = 0.25 + 0.75 * rand(), top = 4.6 + 0.3 * rand();
-    var scale = function (r) { return bottom + (r - rMin) / (rMax - rMin) * (top - bottom); };
-    var game = {
-      id: id, dim: dim, T: BUDGET[dim],
-      label: dim + "-D game " + id.slice(3),
-      f: function (p) { return scale(raw(p)); },
-      xStar: pts[best], fStar: top, mean: scale(rMean)
-    };
+    var f = function (p) { return bottom + (raw(p) - rMin) / (rMax - rMin) * (top - bottom); };
 
-    if (dim === 1) {
-      game.curve = [];
-      for (i = 0; i <= 500; i++) game.curve.push(game.f([i / 500]));
-    } else {
-      game.heat = [];
-      for (i = 0; i < HEAT; i++) for (j = 0; j < HEAT; j++) game.heat.push(game.f([(j + 0.5) / HEAT, (i + 0.5) / HEAT]));
-    }
-    return game;
+    var heat = [];
+    for (i = 0; i < HEAT; i++) for (j = 0; j < HEAT; j++) heat.push(f([(j + 0.5) / HEAT, (i + 0.5) / HEAT]));
+    return { number: number, f: f, xStar: best, fStar: top, heat: heat };
   }
 
   // ------------------------------------------------------------ recipe units
@@ -102,14 +75,11 @@
 
   // Snap a click to whole grams and whole degrees, so the recipe shown is exactly the one baked.
   function snap(p) {
-    var s = [Math.round(sugar(p[0])) / (SUGAR[1] - SUGAR[0])];
-    if (p.length === 2) s.push((Math.round(oven(p[1])) - OVEN[0]) / (OVEN[1] - OVEN[0]));
-    return s;
+    return [Math.round(sugar(p[0])) / (SUGAR[1] - SUGAR[0]), (Math.round(oven(p[1])) - OVEN[0]) / (OVEN[1] - OVEN[0])];
   }
 
   function recipe(p) {
-    var text = Math.round(sugar(p[0])) + " g sugar";
-    return p.length === 1 ? text : text + ", " + Math.round(oven(p[1])) + " °C";
+    return Math.round(sugar(p[0])) + " g sugar, " + Math.round(oven(p[1])) + " °C";
   }
 
   // ------------------------------------------------------------------ colours
@@ -173,79 +143,33 @@
 
   var game, picks, hover = null;
 
-  function regretOf(y) {
-    return Math.max(game.fStar - y, 0);
+  function finished() {
+    return picks.length >= BUDGET;
   }
 
-  function finished() {
-    return picks.length >= game.T;
+  function bestIndex() {
+    var b = -1;
+    picks.forEach(function (p, i) { if (b < 0 || p.y > picks[b].y) b = i; });
+    return b;
   }
+
+  // ------------------------------------------------------------------ render
+
+  function qx(x) { return SQ_X + x * SQ; }
+  function qy(y) { return SQ_Y + (1 - y) * SQ; }
 
   function star(x, y) {
     return '<path class="rg-star" d="M' + x.toFixed(1) + ',' + (y - 9).toFixed(1) +
       'l2.6,5.9 6.4,0.6-4.8,4.3 1.4,6.3-5.6-3.3-5.6,3.3 1.4-6.3-4.8-4.3 6.4-0.6z"/>';
   }
 
-  // ------------------------------------------------------------- render: 1-D
-
-  function sx(x) { return PAD_L + x * PLOT_W; }
-  function sy(y) { return MAIN_Y + (TASTE_MAX - y) / TASTE_MAX * MAIN_H; }
-
-  function render1D() {
-    var out = [], bottom = MAIN_Y + MAIN_H;
-
-    for (var v = 0; v <= TASTE_MAX; v++) {
-      out.push('<line class="rg-gridline" x1="' + PAD_L + '" x2="' + (W - PAD_R) + '" y1="' + sy(v) + '" y2="' + sy(v) + '"/>');
-      out.push('<text x="' + (PAD_L - 7) + '" y="' + sy(v) + '" dy="0.32em" text-anchor="end">' + v + '</text>');
-    }
-    [0, 0.25, 0.5, 0.75, 1].forEach(function (t) {
-      out.push('<text x="' + sx(t) + '" y="' + (bottom + 20) + '" text-anchor="middle">' + sugar(t) + '</text>');
-    });
-    out.push('<text x="' + (W - PAD_R) + '" y="' + (bottom + 40) + '" text-anchor="end">sugar (g)</text>');
-    out.push('<line class="rg-axis" x1="' + PAD_L + '" x2="' + (W - PAD_R) + '" y1="' + bottom + '" y2="' + bottom + '"/>');
-    out.push('<line class="rg-axis" x1="' + PAD_L + '" x2="' + PAD_L + '" y1="' + MAIN_Y + '" y2="' + bottom + '"/>');
-    out.push('<text class="rg-title" x="' + PAD_L + '" y="' + (MAIN_Y - 10) + '">' +
-      (finished() ? "Taste (out of 5): the true taste curve, revealed" : "Taste (out of 5): click to bake a cake") + '</text>');
-
-    if (finished()) {
-      var d = "";
-      game.curve.forEach(function (y, i) { d += (i ? "L" : "M") + sx(i / 500).toFixed(1) + "," + sy(y).toFixed(1); });
-      out.push('<path class="rg-truth" d="' + d + '"/>');
-      picks.forEach(function (p) {
-        out.push('<line class="rg-gap" x1="' + sx(p.x[0]) + '" x2="' + sx(p.x[0]) + '" y1="' + sy(p.y) + '" y2="' + sy(game.fStar) + '"/>');
-      });
-      out.push(star(sx(game.xStar[0]), sy(game.fStar)));
-      out.push('<text x="' + sx(game.xStar[0]) + '" y="' + (sy(game.fStar) - 14) + '" text-anchor="middle">best cake: ' +
-        recipe(game.xStar) + ', taste ' + game.fStar.toFixed(1) + '/5</text>');
-    }
-
-    picks.forEach(function (p, idx) {
-      var cx = sx(p.x[0]).toFixed(1), cy = sy(p.y).toFixed(1);
-      out.push('<circle class="rg-pt" cx="' + cx + '" cy="' + cy + '" r="5"/>');
-      if (idx === picks.length - 1 && !finished()) out.push('<circle class="rg-pt-latest" cx="' + cx + '" cy="' + cy + '" r="8"/>');
-      out.push('<text class="rg-pt-label" x="' + cx + '" y="' + (cy - 11) + '">' + p.y.toFixed(1) + '</text>');
-    });
-
-    if (hover && !finished()) {
-      var hx = sx(hover[0]).toFixed(1);
-      out.push('<line class="rg-hover" x1="' + hx + '" x2="' + hx + '" y1="' + MAIN_Y + '" y2="' + bottom + '"/>');
-      out.push('<text x="' + (W - PAD_R) + '" y="' + (MAIN_Y - 10) + '" text-anchor="end">' + recipe(hover) + '</text>');
-    }
-    return out;
-  }
-
-  // ------------------------------------------------------------- render: 2-D
-
-  function qx(x) { return SQ_X + x * SQ; }
-  function qy(y) { return SQ_Y + (1 - y) * SQ; }
-
-  function render2D() {
-    var out = [], i, j, cell = SQ / HEAT;
+  function renderPlot() {
+    var out = [], i, j, cell = SQ / HEAT, done = finished();
 
     out.push('<text class="rg-title" x="' + SQ_X + '" y="' + (SQ_Y - 10) + '">' +
-      (finished() ? "The true taste, revealed" : "Click to bake a cake") + '</text>');
+      (done ? "The true taste, revealed" : "Click to bake a cake") + '</text>');
 
-    if (finished()) {
+    if (done) {
       for (i = 0; i < HEAT; i++) for (j = 0; j < HEAT; j++) {
         out.push('<rect x="' + (SQ_X + j * cell).toFixed(2) + '" y="' + (SQ_Y + SQ - (i + 1) * cell).toFixed(2) +
           '" width="' + (cell + 0.6).toFixed(2) + '" height="' + (cell + 0.6).toFixed(2) + '" fill="' + colour(game.heat[i * HEAT + j]) + '"/>');
@@ -256,7 +180,7 @@
     [0, 0.25, 0.5, 0.75, 1].forEach(function (t) {
       out.push('<text x="' + qx(t) + '" y="' + (SQ_Y + SQ + 20) + '" text-anchor="middle">' + sugar(t) + '</text>');
       out.push('<text x="' + (SQ_X - 7) + '" y="' + qy(t) + '" dy="0.32em" text-anchor="end">' + oven(t) + '</text>');
-      if (!finished() && t > 0 && t < 1) {
+      if (!done && t > 0 && t < 1) {
         out.push('<line class="rg-gridline" x1="' + qx(t) + '" x2="' + qx(t) + '" y1="' + SQ_Y + '" y2="' + (SQ_Y + SQ) + '"/>');
         out.push('<line class="rg-gridline" x1="' + SQ_X + '" x2="' + (SQ_X + SQ) + '" y1="' + qy(t) + '" y2="' + qy(t) + '"/>');
       }
@@ -270,118 +194,67 @@
     }).join("") + '</linearGradient></defs>');
     out.push('<rect x="' + BAR_X + '" y="' + SQ_Y + '" width="' + BAR_W + '" height="' + SQ + '" fill="url(#rg-bar)"/>');
     for (var v = 0; v <= TASTE_MAX; v++) {
-      var by = SQ_Y + (TASTE_MAX - v) / TASTE_MAX * SQ;
-      out.push('<text x="' + (BAR_X + BAR_W + 6) + '" y="' + by + '" dy="0.32em">' + v + '</text>');
+      out.push('<text x="' + (BAR_X + BAR_W + 6) + '" y="' + (SQ_Y + (TASTE_MAX - v) / TASTE_MAX * SQ) + '" dy="0.32em">' + v + '</text>');
     }
     out.push('<text x="' + BAR_X + '" y="' + (SQ_Y - 10) + '">taste</text>');
 
-    if (hover && !finished()) {
+    if (hover && !done) {
       out.push('<line class="rg-hover" x1="' + qx(hover[0]) + '" x2="' + qx(hover[0]) + '" y1="' + SQ_Y + '" y2="' + (SQ_Y + SQ) + '"/>');
       out.push('<line class="rg-hover" x1="' + SQ_X + '" x2="' + (SQ_X + SQ) + '" y1="' + qy(hover[1]) + '" y2="' + qy(hover[1]) + '"/>');
       out.push('<text x="' + (SQ_X + SQ) + '" y="' + (SQ_Y - 10) + '" text-anchor="end">' + recipe(hover) + '</text>');
     }
 
-    var halo = finished() ? "rg-halo rg-on-map" : "rg-halo";
+    var halo = done ? "rg-halo rg-on-map" : "rg-halo", best = bestIndex();
     picks.forEach(function (p, idx) {
       var cx = qx(p.x[0]).toFixed(1), cy = qy(p.x[1]).toFixed(1);
-      out.push('<circle class="rg-pt2" cx="' + cx + '" cy="' + cy + '" r="6" fill="' + (finished() ? "#fff" : colour(p.y)) + '"/>');
-      if (idx === picks.length - 1 && !finished()) out.push('<circle class="rg-pt-latest" cx="' + cx + '" cy="' + cy + '" r="9"/>');
-      out.push('<text class="rg-pt-label ' + halo + '" x="' + cx + '" y="' + (cy - 11) + '">' + p.y.toFixed(1) + '</text>');
+      if (idx === best) out.push('<circle class="rg-pt-best" cx="' + cx + '" cy="' + cy + '" r="10"/>');
+      out.push('<circle class="rg-pt" cx="' + cx + '" cy="' + cy + '" r="6" fill="' + (done ? "#fff" : colour(p.y)) + '"/>');
+      if (idx === picks.length - 1 && !done && idx !== best) out.push('<circle class="rg-pt-latest" cx="' + cx + '" cy="' + cy + '" r="9"/>');
+      out.push('<text class="rg-pt-label ' + halo + '" x="' + cx + '" y="' + (cy - 12) + '">' + p.y.toFixed(1) + '</text>');
     });
 
-    if (finished()) out.push(star(qx(game.xStar[0]), qy(game.xStar[1])));
-    return out;
+    if (done) out.push(star(qx(game.xStar[0]), qy(game.xStar[1])));
+
+    plot.innerHTML = out.join("");
+    plot.style.cursor = done ? "default" : "crosshair";
   }
 
-  // --------------------------------------------------------- render: results
-
-  function renderRegret() {
-    var T = game.T, cum = [0], i;
-    for (i = 0; i < picks.length; i++) cum.push(cum[i] + regretOf(picks[i].y));
-    var randomRate = game.fStar - game.mean;
-    var yTop = Math.max(cum[T], randomRate * T) * 1.1 || 1;
-    var rx = function (t) { return PAD_L + t / T * PLOT_W; };
-    var ry = function (v) { return REG_Y + (yTop - v) / yTop * REG_H; };
-    var bottom = REG_Y + REG_H, out = [];
-
-    var raw = yTop / 4, step = Math.pow(10, Math.floor(Math.log10(raw)));
-    if (raw / step >= 5) step *= 5;
-    else if (raw / step >= 2) step *= 2;
-    for (var v = 0; v <= yTop; v += step) {
-      out.push('<line class="rg-gridline" x1="' + PAD_L + '" x2="' + (W - PAD_R) + '" y1="' + ry(v) + '" y2="' + ry(v) + '"/>');
-      out.push('<text x="' + (PAD_L - 7) + '" y="' + ry(v) + '" dy="0.32em" text-anchor="end">' + (+v.toFixed(2)) + '</text>');
-    }
-    for (i = 0; i <= T; i += T > 10 ? 2 : 1) out.push('<text x="' + rx(i) + '" y="' + (bottom + 20) + '" text-anchor="middle">' + i + '</text>');
-    out.push('<text x="' + (W - PAD_R) + '" y="' + (bottom + 38) + '" text-anchor="end">cakes baked</text>');
-    out.push('<line class="rg-axis" x1="' + PAD_L + '" x2="' + (W - PAD_R) + '" y1="' + bottom + '" y2="' + bottom + '"/>');
-    out.push('<line class="rg-axis" x1="' + PAD_L + '" x2="' + PAD_L + '" y1="' + REG_Y + '" y2="' + bottom + '"/>');
-    out.push('<text class="rg-title" x="' + PAD_L + '" y="' + (REG_Y - 10) + '">Cumulative regret (total taste lost)</text>');
-
-    var lx = W - PAD_R - 320, ly = REG_Y - 14;
-    out.push('<line class="rg-yours" x1="' + lx + '" x2="' + (lx + 24) + '" y1="' + ly + '" y2="' + ly + '"/>');
-    out.push('<text x="' + (lx + 30) + '" y="' + ly + '" dy="0.32em">you</text>');
-    out.push('<line class="rg-random" x1="' + (lx + 90) + '" x2="' + (lx + 114) + '" y1="' + ly + '" y2="' + ly + '"/>');
-    out.push('<text x="' + (lx + 120) + '" y="' + ly + '" dy="0.32em">random recipes (average)</text>');
-
-    out.push('<line class="rg-random" x1="' + rx(0) + '" y1="' + ry(0) + '" x2="' + rx(T) + '" y2="' + ry(randomRate * T) + '"/>');
-    var d = "";
-    for (i = 0; i <= T; i++) d += (i ? "L" : "M") + rx(i).toFixed(1) + "," + ry(cum[i]).toFixed(1);
-    out.push('<path class="rg-yours" d="' + d + '"/>');
-    for (i = 1; i <= T; i++) out.push('<circle class="rg-yours-dot" cx="' + rx(i).toFixed(1) + '" cy="' + ry(cum[i]).toFixed(1) + '" r="4"/>');
-
-    ui.regret.innerHTML = out.join("");
-    return cum;
-  }
-
-  function renderTable(cum) {
-    var two = game.dim === 2;
-    ui.thead.innerHTML = "<tr><th>Cake</th><th>Sugar (g)</th>" + (two ? "<th>Oven (&deg;C)</th>" : "") +
-      "<th>Taste (/5)</th><th>Taste lost</th><th>Total taste lost</th></tr>";
-    var rows = [];
-    for (var i = 0; i < game.T; i++) {
-      var p = picks[i], hidden = p ? "?" : "";
-      rows.push("<tr><td>" + (i + 1) + "</td><td>" + (p ? Math.round(sugar(p.x[0])) : "") + "</td>" +
-        (two ? "<td>" + (p ? Math.round(oven(p.x[1])) : "") + "</td>" : "") +
-        "<td>" + (p ? p.y.toFixed(2) + cakeMark(p.y) : "") + "</td><td>" + (cum ? regretOf(p.y).toFixed(2) : hidden) +
-        "</td><td>" + (cum ? cum[i + 1].toFixed(2) : hidden) + "</td></tr>");
+  function renderTable() {
+    var best = bestIndex(), rows = [];
+    for (var i = 0; i < BUDGET; i++) {
+      var p = picks[i];
+      rows.push("<tr" + (i === best ? ' class="rg-best-row"' : "") + "><td>" + (i + 1) + "</td><td>" + (p ? Math.round(sugar(p.x[0])) : "") +
+        "</td><td>" + (p ? Math.round(oven(p.x[1])) : "") + "</td><td>" + (p ? p.y.toFixed(2) + cakeMark(p.y) : "") + "</td></tr>");
     }
     ui.table.innerHTML = rows.join("");
   }
 
-  function renderPlot() {
-    plot.innerHTML = (game.dim === 1 ? render1D() : render2D()).join("");
-    plot.style.cursor = finished() ? "default" : "crosshair";
-  }
-
   function render() {
     renderPlot();
-    var cum = null;
+    renderTable();
+    var best = bestIndex(), bestText = best < 0 ? "" : " Best so far: " + picks[best].y.toFixed(2) + "/5.";
     if (finished()) {
-      cum = renderRegret();
-      var best = Math.max.apply(null, picks.map(function (p) { return p.y; }));
-      ui.summary.innerHTML = "<strong>" + game.label + ": your cumulative regret is " + cum[game.T].toFixed(2) + "</strong> (lower is better). " +
-        "Your best cake scored " + best.toFixed(2) + "/5. The best possible cake (" + recipe(game.xStar) + ", marked with a star) scores " +
-        game.fStar.toFixed(2) + "/5. Baking random recipes would lose about " + ((game.fStar - game.mean) * game.T).toFixed(2) + " in total, on average.";
-      ui.status.textContent = "All cakes are baked. The true taste is revealed below" +
-        (game.dim === 1 ? "; each dashed line shows how much taste one cake lost." : ".");
+      ui.status.textContent = "All 20 cakes are baked. The true taste of every recipe is revealed below.";
+      ui.summary.innerHTML = "<strong>Game " + game.number + ": your score is " + picks[best].y.toFixed(2) + "/5</strong> (" +
+        recipe(picks[best].x) + ", circled). The best possible cake (" + recipe(game.xStar) + ", marked with a star) scores " +
+        game.fStar.toFixed(2) + "/5.";
     } else {
-      ui.status.textContent = game.label + ", cake " + (picks.length + 1) + " of " + game.T + ": click on the plot to choose " +
-        (game.dim === 1 ? "how much sugar to use." : "the sugar and the oven temperature.");
+      ui.status.textContent = "Game " + game.number + ", cake " + (picks.length + 1) + " of " + BUDGET +
+        ": click on the plot to choose the sugar and the oven temperature." + bestText;
     }
-    ui.result.classList.toggle("rg-hidden", !finished());
-    renderTable(cum);
+    ui.summary.classList.toggle("rg-hidden", !finished());
   }
 
   // ------------------------------------------------------------- interaction
 
-  function start(id) {
-    if (!/^[12]d-[1-5]$/.test(id)) id = "1d-1";
-    ui.game.value = id;
-    game = makeGame(id);
+  function start(number) {
+    number = String(number).replace(/^2d-/, "");
+    if (!/^[1-5]$/.test(number)) number = "1";
+    ui.game.value = number;
+    game = makeGame(Number(number));
     picks = [];
     hover = null;
     ui.toast.classList.remove("rg-show");
-    plot.setAttribute("viewBox", game.dim === 1 ? "0 0 720 345" : "0 0 720 520");
     render();
   }
 
@@ -390,10 +263,6 @@
     pt.x = evt.clientX;
     pt.y = evt.clientY;
     var p = pt.matrixTransform(plot.getScreenCTM().inverse());
-    if (game.dim === 1) {
-      var x = (p.x - PAD_L) / PLOT_W;
-      return x >= 0 && x <= 1 && p.y >= MAIN_Y && p.y <= MAIN_Y + MAIN_H ? snap([x]) : null;
-    }
     var x1 = (p.x - SQ_X) / SQ, x2 = 1 - (p.y - SQ_Y) / SQ;
     return x1 >= 0 && x1 <= 1 && x2 >= 0 && x2 <= 1 ? snap([x1, x2]) : null;
   }
@@ -422,6 +291,6 @@
   ui.game.addEventListener("change", function () { start(ui.game.value); });
   ui.restart.addEventListener("click", function () { start(ui.game.value); });
 
-  // A link such as /regret-game/?game=2d-3 opens that game directly.
+  // A link such as /regret-game/?game=3 opens that game directly.
   start(new URLSearchParams(window.location.search).get("game") || ui.game.value);
 })();
