@@ -12,7 +12,7 @@ publication_tags:
   - Statistical Learning
 paperurl: "https://arxiv.org/abs/2510.08465"
 codeurl: "https://github.com/cchihyu/A2D2E"
-presentationurl:
+presentationurl: "/files/A2D2E_slides.pdf"
 posterurl:
 citation: "C.-Y. Chang and M.-C. Chang. &quot;Accelerated Aggregated D-Optimal Designs for Estimating Main Effects in Black-Box Models.&quot; <i>arXiv preprint</i>, 2026."
 ---
