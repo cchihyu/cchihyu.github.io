@@ -28,6 +28,8 @@ My current and recent work focuses on methods for learning and decision making f
 - **Conference Reviewer:** AISTATS 2026 (3 papers), UAI 2026 (6 papers), and NeurIPS 2026 (3 papers).
 
 ## News
+- **11/2026:** I will present a poster at [the FIM-IMS Joint Workshop on Mathematics of Data Science](https://ims.nus.edu.sg/events/jointfimim_mathds/).
+- **10/2026:** Passed my Early Stage Assessment at the Department of Mathematics, Imperial College London.
 - **10/2026:** Gave a talk on **Accumulated Aggregated D-optimal Designs for Estimating Main Effects in Black-Box Models** at [Institute of Statistical Science, Academia Sinica](https://www.stat.sinica.edu.tw/eng/) ([slides](/files/A2D2E_slides.pdf)).
 - **09/2026 - 10/2026:** I will be a visiting scholar at [Institute of Statistical Science, Academia Sinica](https://www.stat.sinica.edu.tw/eng/).
 - **06/2026:** I will present a poster at [the Advances in Adaptive Experimentation Workshop](https://aae-workshop.github.io/) at UCL.
@@ -39,4 +41,4 @@ My current and recent work focuses on methods for learning and decision making f
 
 Email: [c.chang25@imperial.ac.uk](mailto:c.chang25@imperial.ac.uk)
 
-Last updated: October 2026.
+Last updated: November 2026.
