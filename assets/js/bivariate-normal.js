@@ -12,6 +12,8 @@
   };
   var statusEl = document.getElementById("bn-status");
   var plotEl = document.getElementById("bn-plot");
+  var m1El = document.getElementById("bn-m1");
+  var m2El = document.getElementById("bn-m2");
 
   function fmt(x) {
     return Number(x.toFixed(3)).toString();
@@ -49,7 +51,38 @@
       }
       z.push(row);
     }
-    return { x: xs, y: xs, z: z, peak: c };
+    return { x: xs, y: xs, z: z, peak: c, L: L };
+  }
+
+  function drawMarginal(el, L, variance, name, color, axis) {
+    var xs = [], ys = [], M = 201;
+    var c = 1 / Math.sqrt(2 * Math.PI * variance);
+    for (var i = 0; i < M; i++) {
+      var x = -L + (2 * L * i) / (M - 1);
+      xs.push(x);
+      ys.push(c * Math.exp(-0.5 * x * x / variance));
+    }
+    var trace = {
+      type: "scatter",
+      mode: "lines",
+      x: xs,
+      y: ys,
+      fill: "tozeroy",
+      line: { color: "#3b528b", width: 2.5 },
+      fillcolor: "rgba(59,82,139,0.2)",
+      hovertemplate: name + " = %{x:.2f}<br>f = %{y:.4f}<extra></extra>"
+    };
+    var layout = {
+      title: { text: name + " ~ N(0, " + fmt(variance) + ")", font: { size: 14 } },
+      margin: { l: 50, r: 15, t: 40, b: 45 },
+      paper_bgcolor: "rgba(0,0,0,0)",
+      plot_bgcolor: "rgba(0,0,0,0)",
+      font: { color: color, family: getComputedStyle(document.body).fontFamily },
+      xaxis: Object.assign({ title: { text: name }, range: [-L, L] }, axis),
+      yaxis: Object.assign({ title: { text: "density" }, rangemode: "tozero" }, axis),
+      showlegend: false
+    };
+    window.Plotly.react(el, [trace], layout, { responsive: true, displaylogo: false, displayModeBar: false });
   }
 
   function textColor() {
@@ -95,6 +128,9 @@
       }
     };
     window.Plotly.react(plotEl, [trace], layout, { responsive: true, displaylogo: false });
+
+    drawMarginal(m1El, d.L, S.s11, "x₁", color, axis);
+    drawMarginal(m2El, d.L, S.s22, "x₂", color, axis);
   }
 
   // Keep the matrix symmetric: editing either off-diagonal entry updates the other.
