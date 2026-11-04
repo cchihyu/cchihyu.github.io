@@ -112,8 +112,7 @@
   th, td { text-align: right; padding: 5px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
   th:first-child, td:first-child { text-align: left; }
   th { font-weight: 500; color: var(--muted); font-size: 0.8rem; }
-  tr.zero td { color: var(--bad); }
-  tr.low td { color: var(--warn); }
+  tr.more td { color: var(--muted); text-align: left; border-bottom: 0; }
 
   .panel { position: sticky; top: 16px; display: grid; gap: 14px; }
   .card { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 16px 18px; display: grid; gap: 12px; }
@@ -589,13 +588,12 @@
     var t = $("arm-table");
     if (!S) { t.innerHTML = ""; $("data-summary").innerHTML = data ? "<code>" + esc(data.name) + "</code>" : ""; return; }
     var adaptive = columnsInUse().p >= 0;
-    var html = "<thead><tr><th>Arm</th><th>Rounds</th><th>Share</th><th>Mean reward</th><th>SD</th>" + (adaptive ? "<th>Min. probability</th>" : "") + "</tr></thead><tbody>";
-    S.arms.forEach(function (arm, k) {
-      var cls = arm.n === 0 ? "zero" : arm.n < 10 ? "low" : "";
-      html += '<tr class="' + cls + '"><td>' + k + "</td><td>" + arm.n + "</td><td>" + fmt(100 * arm.n / S.Toff, 1) + "%</td><td>" +
-        (arm.n ? fmt(arm.mean) : "–") + "</td><td>" + (arm.n > 1 ? fmt(arm.sd) : "–") + "</td>" +
-        (adaptive ? "<td>" + (isFinite(arm.minp) ? fmt(arm.minp, 4) : "–") + "</td>" : "") + "</tr>";
+    // Preview of the first three rows, as they appear in the file.
+    var html = "<thead><tr>" + data.header.map(function (h) { return "<th>" + esc(h) + "</th>"; }).join("") + "</tr></thead><tbody>";
+    data.rows.slice(0, 3).forEach(function (row) {
+      html += "<tr>" + row.map(function (v) { return "<td>" + esc(String(v)) + "</td>"; }).join("") + "</tr>";
     });
+    if (data.rows.length > 3) html += '<tr class="more"><td colspan="' + data.header.length + '">… ' + (data.rows.length - 3) + " more rows</td></tr>";
     t.innerHTML = html + "</tbody>";
     var parts = ["<code>" + esc(data.name) + "</code>", S.Toff + " rounds", S.K + " arms"];
     if (radio("setting") === "ctx") parts.push(contextColumns().length + " context features");
