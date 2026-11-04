@@ -101,7 +101,10 @@
 
   .drop { border: 1.5px dashed var(--line); border-radius: 8px; padding: 14px; display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; }
   .drop.over { border-color: var(--accent); background: var(--accent-soft); }
-  .drop .file-name { font-family: var(--font-mono); font-size: 0.85rem; }
+  .drop .examples { margin-left: auto; }
+  button.link { font: inherit; color: var(--accent); background: none; border: 0; padding: 0; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; }
+  .data-summary { font-size: 0.9rem; }
+  .data-summary code { font-size: 0.85em; }
   .drop .muted { color: var(--muted); font-size: 0.85rem; }
   .sub { color: var(--muted); font-size: 0.85rem; }
 
@@ -186,21 +189,13 @@
       <section class="step" id="step-data">
         <div class="step-head"><span class="step-num">2</span><h2>Logged data</h2><span class="hint">CSV, one row per round</span></div>
         <div class="drop" id="drop">
-          <label class="btn small" for="csv-file">Choose CSV file</label>
+          <label class="btn" for="csv-file">Choose CSV file</label>
           <input type="file" id="csv-file" accept=".csv,text/csv" class="hidden">
-          <span class="file-name" id="file-name"></span>
-          <span class="muted">or drop it here, or load an example:</span>
-          <button type="button" class="btn small" id="ex-clean">ε-greedy logs</button>
-          <button type="button" class="btn small" id="ex-issues">Logs with problems</button>
+          <span class="muted">or drop it here</span>
+          <span class="muted examples">Example: <button type="button" class="link" id="ex-clean">clean logs</button> · <button type="button" class="link" id="ex-issues">logs with problems</button></span>
         </div>
         <p class="sub" id="format-hint"></p>
-        <label class="check"><input type="checkbox" id="adaptive"> The data were collected by an adaptive policy (I will provide the action selection probabilities)</label>
-        <div class="row" id="mapping">
-          <label class="field"><span>Action column</span><select id="col-action"></select></label>
-          <label class="field"><span>Reward column</span><select id="col-reward"></select></label>
-          <label class="field" id="col-prop-field"><span>Selection probability column</span><select id="col-prop"></select></label>
-        </div>
-        <p class="sub" id="ctx-cols"></p>
+        <p class="data-summary" id="data-summary"></p>
         <div class="table-wrap"><table id="arm-table"></table></div>
       </section>
 
@@ -463,6 +458,7 @@
   }
 
   function guessColumns() {
+    if (!data) return { action: -1, reward: -1, prop: -1 };
     var h = data.header.map(function (s) { return s.toLowerCase(); });
     function find(re) { for (var i = 0; i < h.length; i++) if (re.test(h[i])) return i; return -1; }
     return {
@@ -479,14 +475,7 @@
 
   function loadData(d) {
     data = d;
-    $("file-name").textContent = d.name + " · " + d.rows.length + " rows";
-    var g = guessColumns();
-    var opts = d.header.map(function (h, i) { return { v: String(i), t: h }; });
-    fillSelect($("col-action"), opts, String(Math.max(g.action, 0)));
-    fillSelect($("col-reward"), opts, String(Math.max(g.reward, 0)));
-    fillSelect($("col-prop"), [{ v: "-1", t: "(none)" }].concat(opts), String(g.prop));
     if (d.K) $("n-arms").value = d.K;
-    $("adaptive").checked = g.prop >= 0;
     lastResult = null;
     renderResult();
     refresh();
@@ -494,7 +483,8 @@
 
   // ---------- derived data ----------
   function columnsInUse() {
-    return { a: parseInt($("col-action").value, 10), r: parseInt($("col-reward").value, 10), p: parseInt($("col-prop").value, 10) };
+    var g = guessColumns();
+    return { a: g.action, r: g.reward, p: g.prop };
   }
   function contextColumns() {
     if (!data) return [];
@@ -509,6 +499,7 @@
 
   function summarize() {
     if (!data || !data.rows.length) return null;
+    if (columnsInUse().a < 0 || columnsInUse().r < 0) return null;
     var K = parseInt($("n-arms").value, 10) || 0;
     var c = columnsInUse();
     var arms = [];
@@ -549,8 +540,8 @@
     $("pol-code").value = POLICY_TEMPLATE[setting];
     $("pol-interface").textContent = POLICY_INTERFACE[setting];
     $("format-hint").innerHTML = setting === "mab"
-      ? "Columns: <code>action</code> (0 to K−1), <code>reward</code>, and for adaptive logs <code>propensity</code>, the probability the logging policy gave to the action it chose."
-      : "Columns: one per context feature (for example <code>x1</code>, <code>x2</code>), then <code>action</code>, <code>reward</code>, and for adaptive logs <code>propensity</code>.";
+      ? "Needs columns <code>action</code> (0 to K−1) and <code>reward</code>. If an adaptive policy collected the data, add <code>propensity</code>: the probability it gave to the action it chose."
+      : "Needs <code>action</code>, <code>reward</code>, and one column per context feature (for example <code>x1</code>, <code>x2</code>). If an adaptive policy collected the data, add <code>propensity</code>.";
 
     var ctxOn = setting === "ctx";
     $("step-context").classList.toggle("is-off", !ctxOn);
@@ -576,13 +567,12 @@
     var m = radio("msrc");
     $("m-auto-opts").classList.toggle("hidden", m !== "auto");
     $("m-manual-opts").classList.toggle("hidden", m !== "manual");
-    $("col-prop-field").classList.toggle("hidden", !$("adaptive").checked);
   }
 
   function renderArmTable(S) {
     var t = $("arm-table");
-    if (!S) { t.innerHTML = ""; $("ctx-cols").textContent = ""; return; }
-    var adaptive = $("adaptive").checked && columnsInUse().p >= 0;
+    if (!S) { t.innerHTML = ""; $("data-summary").innerHTML = data ? "<code>" + esc(data.name) + "</code>" : ""; return; }
+    var adaptive = columnsInUse().p >= 0;
     var html = "<thead><tr><th>Arm</th><th>Rounds</th><th>Share</th><th>Mean reward</th><th>SD</th>" + (adaptive ? "<th>Min. probability</th>" : "") + "</tr></thead><tbody>";
     S.arms.forEach(function (arm, k) {
       var cls = arm.n === 0 ? "zero" : arm.n < 10 ? "low" : "";
@@ -591,14 +581,10 @@
         (adaptive ? "<td>" + (isFinite(arm.minp) ? fmt(arm.minp, 4) : "–") + "</td>" : "") + "</tr>";
     });
     t.innerHTML = html + "</tbody>";
-    if (radio("setting") === "ctx") {
-      var cc = contextColumns();
-      $("ctx-cols").innerHTML = cc.length
-        ? "Context columns: " + cc.map(function (i) { return "<code>" + esc(data.header[i]) + "</code>"; }).join(", ") + " (d = " + cc.length + ")."
-        : "No context columns found. Add one column per context feature.";
-    } else {
-      $("ctx-cols").textContent = "";
-    }
+    var parts = ["<code>" + esc(data.name) + "</code>", S.Toff + " rounds", S.K + " arms"];
+    if (radio("setting") === "ctx") parts.push(contextColumns().length + " context features");
+    parts.push(adaptive ? "adaptive logging (propensity column found)" : "fixed logging policy (no propensity column)");
+    $("data-summary").innerHTML = parts.join(" · ");
   }
 
   // ---------- checks ----------
@@ -621,10 +607,10 @@
     var T = parseInt($("horizon").value, 10);
 
     if (!data) { add("bad", "No logged data.", "Upload a CSV file or load an example."); return { list: out, S: null }; }
+    var c = columnsInUse();
+    if (c.a < 0 || c.r < 0) { add("bad", "Missing " + (c.a < 0 ? "an action" : "a reward") + " column.", "Name the columns action and reward."); return { list: out, S: null }; }
     if (!S) { add("bad", "No usable rows in " + data.name + ".", "Every row had missing or non-numeric values. Check that the file is comma-separated with numbers only."); return { list: out, S: null }; }
     if (data.badRows) add("warn", data.badRows + " rows skipped.", "They had missing or non-numeric values.");
-    var c = columnsInUse();
-    if (c.a === c.r) add("bad", "Action and reward use the same column.", "Pick a different column for each.");
     add("ok", "T_off = " + S.Toff + " logged rounds.", "");
 
     if (S.badActions) add("bad", S.badActions + " rows have an invalid action.", "Actions must be whole numbers from 0 to K − 1 = " + (S.K - 1) + ". Check the action column or the number of arms.");
@@ -640,9 +626,9 @@
     }
     if (env === "beta" && S.outside01) add("bad", S.outside01 + " rewards are outside [0, 1].", "The bounded reward model needs rewards in [0, 1]. Rescale them first.");
 
-    if ($("adaptive").checked) {
-      if (c.p < 0) add("bad", "No selection probability column.", "Adaptive logs need the probability the logging policy gave to each chosen action. Pick the column, or untick the adaptive option.");
-      else if (S.badProps) add("bad", S.badProps + " selection probabilities are not in (0, 1].", "Each value must be the probability of the action that was taken.");
+    if (c.p < 0) add("ok", "No propensity column, so the logging policy is treated as fixed.", "If an adaptive policy collected the data, add a propensity column.");
+    else {
+      if (S.badProps) add("bad", S.badProps + " selection probabilities are not in (0, 1].", "Each value must be the probability of the action that was taken.");
       else if (S.minProp < 0.01) add("warn", "Some selection probabilities are as small as " + fmt(S.minProp, 4) + ".", "BSI assumes the logging policy keeps exploring. Probabilities this close to 0 suggest that assumption may fail, and the interval may undercover.");
       else add("ok", "Selection probabilities are all at least " + fmt(S.minProp, 3) + ".", "");
     }
@@ -934,7 +920,7 @@
   function takeCsv(file) {
     readFile(file, function (text) {
       var parsed = parseCsv(text, file.name);
-      if (parsed.error) { $("file-name").textContent = file.name + ": " + parsed.error; return; }
+      if (parsed.error) { data = null; refresh(); $("data-summary").textContent = file.name + ": " + parsed.error; return; }
       var g = parsed.header.map(function (h) { return h.toLowerCase(); }).indexOf("action");
       if (g >= 0) parsed.K = Math.max.apply(null, parsed.rows.map(function (r) { return r[g]; })) + 1;
       loadData(parsed);
