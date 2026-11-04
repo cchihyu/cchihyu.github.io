@@ -15,6 +15,7 @@ author_profile: true
   .gp .gp-slider input { width: 100%; margin: 0.4em 0 0; }
   .gp .gp-status { font-size: 0.9em; margin: 0.9em 0 0.3em; min-height: 1.5em; }
   .gp .gp-plot { width: 100%; height: 460px; }
+  .gp .gp-hidden { display: none; }
 </style>
 
 <p>A Gaussian process (GP) with mean 0 and squared exponential kernel</p>
@@ -23,39 +24,38 @@ author_profile: true
 k(x, x') = \exp\!\left( -\frac{(x - x')^2}{2\ell^2} \right)
 \]
 
-<p>is used to learn an unknown function \(f\) on \([0, 1]\) from a few observations \(y_i = f(x_i) + \varepsilon_i\), where the noise \(\varepsilon_i \sim N(0, \sigma_n^2)\) has a known standard deviation \(\sigma_n\). The <strong>length scale</strong> \(\ell\) controls how quickly the GP believes \(f\) can change. Given the training points, the GP gives a posterior mean (its best guess of \(f\)) and a 95% credible band around it.</p>
+<p>is used to learn an unknown function \(f\) on \([0, 1]\) from a few observations. The <strong>length scale</strong> \(\ell\) controls how quickly the GP believes \(f\) can change. Given the observations, the GP gives a posterior mean (its best guess of \(f\)) and a 95% credible band around it.</p>
 
-<p><strong>Your task:</strong> the true \(f\) is hidden. Looking only at the training points, choose a length scale so that the 95% band covers \(f\) everywhere on \([0, 1]\), while keeping the band as narrow as possible. Then click <em>Reveal f</em> to see how you did. A tiny \(\ell\) covers almost anything, but its band is too wide to be useful. With noise, the training points no longer sit exactly on \(f\), so the GP should not pass through them; try a few noise draws to see how much the best \(\ell\) changes.</p>
+<p><strong>How to play:</strong> the true \(f\) is hidden. You start with 2 observations. In each round, move the slider to choose a length scale, then click <em>Submit</em>. You will be told what percentage of \(f\) on \([0, 1]\) your 95% band covers, and you will get one more observation. The game ends when you have 10 observations, and then \(f\) is revealed. Aim for full coverage with a band as narrow as possible: a tiny \(\ell\) covers almost anything, but its band is too wide to be useful.</p>
 
 <div class="gp" id="gp">
   <div class="gp-controls">
-    <label for="gp-func">Function<br>
+    <label for="gp-func">Game<br>
       <select id="gp-func">
-        <option value="0">Function 1</option>
-        <option value="1">Function 2</option>
-        <option value="2">Function 3</option>
-        <option value="3">Function 4</option>
-        <option value="4">Function 5</option>
+        <option value="0">Game 1</option>
+        <option value="1">Game 2</option>
+        <option value="2">Game 3</option>
+        <option value="3">Game 4</option>
+        <option value="4">Game 5</option>
       </select>
     </label>
-    <label for="gp-noise">Noise \(\sigma_n\)<br>
-      <select id="gp-noise">
-        <option value="0">None</option>
-        <option value="0.1">Low (0.1)</option>
-        <option value="0.3">Medium (0.3)</option>
-        <option value="0.6">High (0.6)</option>
-      </select>
-    </label>
-    <button type="button" class="btn btn--info" id="gp-redraw">New noise draw</button>
     <label class="gp-slider" for="gp-ell">Length scale \(\ell\) = <strong id="gp-ell-value"></strong>
       <input type="range" id="gp-ell" min="-2" max="0" step="0.01" value="-0.7">
     </label>
-    <button type="button" class="btn btn--info" id="gp-reveal">Reveal f</button>
+    <button type="button" class="btn btn--primary" id="gp-submit">Submit</button>
+    <button type="button" class="btn btn--info" id="gp-restart">Restart game</button>
   </div>
 
   <p class="gp-status" id="gp-status" aria-live="polite"></p>
 
   <div class="gp-plot" id="gp-plot"></div>
+
+  <div class="gp-hidden" id="gp-summary"></div>
+
+  <table>
+    <thead><tr><th>Round</th><th>Observations</th><th>Your \(\ell\)</th><th>Coverage</th><th>Band width</th></tr></thead>
+    <tbody id="gp-table"></tbody>
+  </table>
 </div>
 
 <script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8" defer></script>
