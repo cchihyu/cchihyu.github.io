@@ -8,6 +8,6 @@ tags:
   - bayesian optimization
 ---
 
-A Gaussian process starts with two observations of a hidden function, and you have to choose its length scale. After each choice you learn how much of the function your 95% band covered, and you get one more observation, until you have ten. Can you keep the band covering the function without making it uselessly wide? Some of the functions hide surprises that only show up later in the game.
+A Gaussian process sees five observations of a hidden function, and you have to choose its length scale. Can you pick one whose 95% band covers the function, without making the band uselessly wide? Some of the functions hide surprises between the observations.
 
 [Play the game here.](/gp-length-scale/)

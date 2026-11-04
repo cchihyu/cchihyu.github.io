@@ -5,45 +5,39 @@
   var JITTER = 1e-6;    // added to the kernel diagonal for numerical stability
   var Z = 1.96;         // 95% band
   var NOISE = 0.1;      // observation noise standard deviation, fixed and not shown to players
-  var START = 2;        // observations at the start of a game
-  var LAST = 10;        // observations in the final round
 
-  // Each game has a hidden function and the order in which observations arrive.
-  // Later games hide more between the early observations.
+  // Each game has a hidden function and five observation points.
+  // Later games hide more between the observations.
   var GAMES = [
     { // a gentle wave
       f: function (x) { return Math.sin(2 * Math.PI * x); },
-      xs: [0.2, 0.8, 0.5, 0.05, 0.35, 0.65, 0.95, 0.27, 0.58, 0.88]
+      xs: [0.1, 0.3, 0.5, 0.7, 0.9]
     },
-    { // wiggles faster than the first few observations can show
+    { // wiggles faster than five observations can show
       f: function (x) { return 0.9 * Math.sin(6 * Math.PI * x); },
-      xs: [0.25, 0.75, 0.5, 0.1, 0.9, 0.38, 0.62, 0.02, 0.18, 0.83]
+      xs: [0.1, 0.3, 0.5, 0.7, 0.9]
     },
-    { // a smooth trend with a narrow spike that is only found in round 4
+    { // a smooth trend with a narrow spike between two observations
       f: function (x) { return 0.6 * x - 0.3 + 1.8 * Math.exp(-Math.pow((x - 0.3) / 0.03, 2)); },
-      xs: [0.1, 0.9, 0.5, 0.7, 0.31, 0.2, 0.4, 0.6, 0.8, 0.0]
+      xs: [0.05, 0.2, 0.45, 0.7, 0.95]
     },
-    { // a jump between 0.5 and 0.8
+    { // a jump between 0.5 and 0.75
       f: function (x) { return x < 0.62 ? -0.8 + 0.2 * x : 0.8 - 0.2 * x; },
-      xs: [0.2, 0.8, 0.5, 0.35, 0.65, 0.05, 0.95, 0.58, 0.72, 0.12]
+      xs: [0.1, 0.3, 0.5, 0.75, 0.95]
     },
-    { // the first three observations are all at the same height
+    { // the first four observations are all at the same height
       f: function (x) { return 1.5 * Math.sin(5 * Math.PI * x) * Math.sin(5 * Math.PI * x) - 0.5; },
-      xs: [0.0, 0.4, 0.8, 0.1, 0.6, 0.3, 0.95, 0.5, 0.7, 0.2]
+      xs: [0.0, 0.2, 0.4, 0.6, 0.9]
     }
   ];
 
   var funcEl = document.getElementById("gp-func");
   var ellEl = document.getElementById("gp-ell");
   var ellValueEl = document.getElementById("gp-ell-value");
-  var submitEl = document.getElementById("gp-submit");
-  var restartEl = document.getElementById("gp-restart");
-  var statusEl = document.getElementById("gp-status");
+  var revealEl = document.getElementById("gp-reveal");
   var plotEl = document.getElementById("gp-plot");
-  var summaryEl = document.getElementById("gp-summary");
-  var tableEl = document.getElementById("gp-table");
 
-  var game, ys, n, history, finished, lastMessage;
+  var game, ys, revealed;
 
   var grid = [];
   for (var i = 0; i < M; i++) grid.push(i / (M - 1));
@@ -106,9 +100,9 @@
     return v;
   }
 
-  // Posterior mean and 95% band of f given the first n observations.
+  // Posterior mean and 95% band of f given the observations.
   function posterior(ell) {
-    var xs = game.xs.slice(0, n), y = ys.slice(0, n);
+    var xs = game.xs, y = ys, n = xs.length;
     var K = xs.map(function (a) {
       return xs.map(function (b) { return kernel(a, b, ell); });
     });
@@ -131,33 +125,16 @@
     return { mean: mean, lo: lo, hi: hi };
   }
 
-  function score(post) {
-    var covered = 0, width = 0, missX = [], missY = [];
+  // The parts of f outside the band, with gaps where f is covered.
+  function misses(post) {
+    var missX = [], missY = [];
     for (var j = 0; j < M; j++) {
       var t = game.f(grid[j]);
-      width += post.hi[j] - post.lo[j];
-      if (t >= post.lo[j] && t <= post.hi[j]) {
-        covered++;
-        missX.push(null);
-        missY.push(null);
-      } else {
-        missX.push(grid[j]);
-        missY.push(t);
-      }
+      var out = t < post.lo[j] || t > post.hi[j];
+      missX.push(out ? grid[j] : null);
+      missY.push(out ? t : null);
     }
-    return { coverage: (100 * covered) / M, width: width / M, missX: missX, missY: missY };
-  }
-
-  // The slider value with the highest coverage, breaking ties by the narrowest band.
-  function bestEll() {
-    var best = null;
-    for (var le = -2; le <= 1e-9; le += 0.01) {
-      var ell = Math.pow(10, le), s = score(posterior(ell));
-      if (!best || s.coverage > best.coverage + 1e-9 || (Math.abs(s.coverage - best.coverage) < 1e-9 && s.width < best.width)) {
-        best = { ell: ell, coverage: s.coverage, width: s.width };
-      }
-    }
-    return best;
+    return { x: missX, y: missY };
   }
 
   function currentEll() {
@@ -193,20 +170,20 @@
       }
     ];
 
-    if (finished) {
-      var s = score(post);
+    if (revealed) {
+      var s = misses(post);
       traces.push({
         x: grid, y: grid.map(game.f), mode: "lines", line: { color: "#e07b39", width: 2, dash: "dash" },
         name: "true f", hovertemplate: "x = %{x:.3f}<br>f = %{y:.3f}<extra></extra>"
       });
       traces.push({
-        x: s.missX, y: s.missY, mode: "lines", line: { color: "#c0392b", width: 4 },
+        x: s.x, y: s.y, mode: "lines", line: { color: "#c0392b", width: 4 },
         name: "not covered", hoverinfo: "skip", connectgaps: false
       });
     }
 
     traces.push({
-      x: game.xs.slice(0, n), y: ys.slice(0, n), mode: "markers",
+      x: game.xs, y: ys, mode: "markers",
       marker: { color: color, size: 10, line: { color: "#fff", width: 1.5 } },
       name: "observations", hovertemplate: "x = %{x:.2f}<br>y = %{y:.3f}<extra></extra>"
     });
@@ -222,55 +199,6 @@
       legend: { orientation: "h", x: 0, y: 1.02, yanchor: "bottom" }
     };
     window.Plotly.react(plotEl, traces, layout, { responsive: true, displaylogo: false, displayModeBar: false });
-
-    if (finished) {
-      statusEl.innerHTML = lastMessage + " The game is over: the true f is now shown. You can still move the slider to explore.";
-    } else {
-      statusEl.innerHTML = (lastMessage ? lastMessage + " " : "") +
-        "<strong>Round " + (n - START + 1) + " of " + (LAST - START + 1) + "</strong> (" + n + " observations): choose a length scale and click Submit.";
-    }
-  }
-
-  function addRow(h) {
-    var tr = document.createElement("tr");
-    [h.round, h.n, fmtEll(h.ell), h.coverage.toFixed(1) + "%", h.width.toFixed(2)].forEach(function (v) {
-      var td = document.createElement("td");
-      td.textContent = v;
-      tr.appendChild(td);
-    });
-    tableEl.appendChild(tr);
-  }
-
-  function showSummary() {
-    var avg = 0;
-    history.forEach(function (h) { avg += h.coverage; });
-    avg /= history.length;
-    var full = history.filter(function (h) { return h.coverage >= 99.95; }).length;
-    var best = bestEll();
-    summaryEl.innerHTML = "<p><strong>Game over.</strong> Your average coverage was <strong>" + avg.toFixed(1) +
-      "%</strong>, with full coverage in " + full + " of " + history.length + " rounds. With all " + LAST +
-      " observations, the narrowest band with the highest coverage (" + best.coverage.toFixed(1) +
-      "%) comes from ℓ = " + fmtEll(best.ell) + ", with width " + best.width.toFixed(2) + ".</p>";
-    summaryEl.className = "";
-  }
-
-  function submit() {
-    if (finished) return;
-    var ell = currentEll();
-    var s = score(posterior(ell));
-    var h = { round: n - START + 1, n: n, ell: ell, coverage: s.coverage, width: s.width };
-    history.push(h);
-    addRow(h);
-    lastMessage = "With ℓ = " + fmtEll(ell) + ", your band covered <strong>" + s.coverage.toFixed(1) + "%</strong> of f.";
-    if (n >= LAST) {
-      finished = true;
-      submitEl.disabled = true;
-      showSummary();
-    } else {
-      n++;
-      lastMessage += " Here is a new observation.";
-    }
-    draw();
   }
 
   function start() {
@@ -278,21 +206,18 @@
     game = GAMES[idx];
     var rand = rng(idx + 1);
     ys = game.xs.map(function (x) { return game.f(x) + NOISE * normal(rand); });
-    n = START;
-    history = [];
-    finished = false;
-    lastMessage = "";
-    submitEl.disabled = false;
-    tableEl.innerHTML = "";
-    summaryEl.className = "gp-hidden";
-    summaryEl.innerHTML = "";
+    revealed = false;
+    revealEl.textContent = "Reveal f";
     draw();
   }
 
   ellEl.addEventListener("input", draw);
-  submitEl.addEventListener("click", submit);
-  restartEl.addEventListener("click", start);
   funcEl.addEventListener("change", start);
+  revealEl.addEventListener("click", function () {
+    revealed = !revealed;
+    revealEl.textContent = revealed ? "Hide f" : "Reveal f";
+    draw();
+  });
 
   start();
 })();
