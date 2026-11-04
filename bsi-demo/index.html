@@ -62,8 +62,7 @@
   .demo-banner { display: flex; gap: 10px; align-items: baseline; padding: 10px 14px; border: 1px solid var(--warn); background: var(--warn-soft); border-radius: 8px; font-size: 0.9rem; }
   .demo-banner strong { color: var(--warn); white-space: nowrap; }
 
-  .layout { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 20px; align-items: start; }
-  @media (max-width: 960px) { .layout { grid-template-columns: 1fr; } }
+  .layout { max-width: 860px; }
 
   .steps { display: grid; gap: 14px; }
   .step { background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: grid; gap: 14px; }
@@ -95,7 +94,7 @@
 
   .btn { font: inherit; font-weight: 500; border-radius: 6px; padding: 7px 14px; border: 1px solid var(--line); background: var(--card); color: var(--ink); cursor: pointer; }
   .btn:hover { border-color: var(--accent); }
-  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--card); font-weight: 600; padding: 10px 16px; width: 100%; font-size: 1rem; }
+  .btn.primary { background: var(--accent); border-color: var(--accent); color: var(--card); font-weight: 600; padding: 10px 22px; font-size: 1rem; justify-self: start; }
   .btn.primary:disabled { opacity: 0.45; cursor: not-allowed; }
   .btn.small { padding: 4px 10px; font-size: 0.85rem; }
 
@@ -145,9 +144,10 @@
   .result-big .label { font-size: 0.8rem; color: var(--muted); }
   .result-big .value { font-family: var(--font-display); font-size: 1.9rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
   .result-big .ci { font-family: var(--font-mono); font-size: 1rem; }
-  dl.facts { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; margin: 0; font-size: 0.86rem; }
+  dl.facts { display: grid; grid-template-columns: max-content max-content; gap: 6px 28px; margin: 0; font-size: 0.95rem; }
   dl.facts dt { color: var(--muted); }
-  dl.facts dd { margin: 0; text-align: right; font-variant-numeric: tabular-nums; }
+  dl.facts dd { margin: 0; font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  #checks:empty { display: none; }
   svg.ci-plot { width: 100%; height: auto; display: block; }
   svg.ci-plot text { fill: var(--muted); font: 11px var(--font-body); }
   svg.ci-plot .axis { stroke: var(--line); }
@@ -285,19 +285,13 @@
           </label>
         </div>
       </section>
-    </main>
 
-    <aside class="panel">
-      <section class="card" aria-labelledby="checks-title">
-        <div class="card-head"><h2 id="checks-title">Checks</h2><div class="tally" id="tally"></div></div>
+      <section class="step" id="step-run">
         <ul class="checks" id="checks"></ul>
         <button type="button" class="btn primary" id="run">Run BSI</button>
+        <div id="result-body" aria-live="polite"></div>
       </section>
-      <section class="card" id="result-card" aria-live="polite">
-        <div class="card-head"><h2>Result</h2><span class="sub" id="result-stamp"></span></div>
-        <div id="result-body"><p class="sub">Run BSI to get a confidence interval for the policy's mean reward.</p></div>
-      </section>
-    </aside>
+    </main>
   </div>
 </div>
 
@@ -705,18 +699,14 @@
   }
 
   function renderChecks(res) {
-    var order = { bad: 0, warn: 1, ok: 2 };
-    var list = res.list.slice().sort(function (a, b) { return order[a.level] - order[b.level]; });
-    $("checks").innerHTML = list.map(function (c) {
+    var problems = res.list.filter(function (c) { return c.level !== "ok"; })
+      .sort(function (a, b) { return (a.level === "bad" ? 0 : 1) - (b.level === "bad" ? 0 : 1); });
+    $("checks").innerHTML = problems.map(function (c) {
       return '<li class="' + c.level + '"><span><b>' + esc(c.title) + "</b>" + (c.text ? " " + esc(c.text) : "") + "</span></li>";
     }).join("");
-    var n = { bad: 0, warn: 0, ok: 0 };
-    res.list.forEach(function (c) { n[c.level]++; });
-    $("tally").innerHTML = (n.bad ? '<span class="pill bad">' + n.bad + " to fix</span>" : "") +
-      (n.warn ? '<span class="pill warn">' + n.warn + " warning" + (n.warn > 1 ? "s" : "") + "</span>" : "") +
-      '<span class="pill ok">' + n.ok + " ok</span>";
-    $("run").disabled = n.bad > 0;
-    $("run").textContent = n.bad > 0 ? "Fix the issues above to run" : "Run BSI";
+    var blocked = problems.some(function (c) { return c.level === "bad"; });
+    $("run").disabled = blocked;
+    $("run").textContent = blocked ? "Fix the issues above to run" : "Run BSI";
   }
 
   function refresh() {
@@ -783,8 +773,7 @@
     // Plug-in variance of the value from the per-arm mean estimates, plus Monte Carlo error.
     var varSim = 0;
     S.arms.forEach(function (arm, k) { if (arm.n) varSim += share[k] * share[k] * arm.sd * arm.sd / arm.n; });
-    var varMc = Math.max(totalSq / reps - value * value, 0) / reps;
-    return { value: value, se: Math.sqrt(varSim * 1.15 + varMc), share: share };
+    return { value: value, se: Math.sqrt(varSim * 1.15), rolloutVar: Math.max(totalSq / reps - value * value, 0) };
   }
 
   function approxCtx(S, T, r) {
@@ -830,15 +819,8 @@
       : vBest - 0.7 * learn * (vBest - vUnif);
     var se = 0;
     ns.forEach(function (n) { if (n) se += (d + 1) / (n * K * K); });
-    return { value: value, se: Math.sqrt(se) * 1.1 + 0.002, share: null };
+    return { value: value, se: Math.sqrt(se) * 1.1 + 0.002, rolloutVar: 1.2 / T };
   }
-
-  var STEPS = [
-    function (S) { return "Fitting the simulator from " + S.Toff + " logged rounds"; },
-    function () { return "Selecting M with " + num("m-m0").toLocaleString() + " pilot rollouts and " + num("m-B").toLocaleString() + " bootstrap resamples"; },
-    function (S, M, T) { return "Rolling out " + M.toLocaleString() + " trajectories of " + T + " rounds"; },
-    function () { return "Building the interval"; }
-  ];
 
   function run() {
     var res = refresh();
@@ -847,75 +829,32 @@
     var auto = radio("msrc") === "auto";
     var sel = selectedM(S);
     var M = auto ? sel.M : parseInt($("m-value").value, 10);
-    var steps = STEPS.filter(function (_, i) { return auto || i !== 1; });
-    var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    var delay = reduce ? 60 : 650;
     $("run").disabled = true;
-    var body = $("result-body");
-    body.innerHTML = '<div class="progress" id="progress">' + steps.map(function (s) { return '<div class="todo">' + esc(s(S, M, T)) + "</div>"; }).join("") + "</div>";
-    $("result-stamp").textContent = "running";
-    var rows = body.querySelectorAll(".progress div");
-    var i = 0;
-    (function tick() {
-      if (i > 0) rows[i - 1].className = "done";
-      if (i < rows.length) { rows[i].className = "active"; i++; setTimeout(tick, delay); return; }
+    $("run").textContent = "Running…";
+    setTimeout(function () {
       var r = mulberry(1234 + T);
       var est = radio("setting") === "mab" ? simulateMab(S, T, Math.min(400, Math.max(80, Math.floor(200000 / T))), r) : approxCtx(S, T, r);
       var level = parseFloat($("level").value);
       var z = zq(1 - (1 - level) / 2);
-      lastResult = { value: est.value, lo: est.value - z * est.se, hi: est.value + z * est.se, level: level, M: M, auto: auto, sel: sel, T: T, S: S, share: est.share, warns: res.list.filter(function (c) { return c.level === "warn"; }).length };
+      var seCenter = Math.sqrt(est.rolloutVar / M);              // Monte Carlo error of the center
+      var half = z * Math.sqrt(est.se * est.se + seCenter * seCenter);
+      var seWidth = 2 * half * Math.sqrt(sel.rho / M);            // Monte Carlo error of the width, from ρ̂
+      lastResult = { lo: est.value - half, hi: est.value + half, level: level, M: M, auto: auto, capped: auto && sel.capped, seCenter: seCenter, seWidth: seWidth };
       renderResult();
-      $("run").disabled = false;
-    })();
-  }
-
-  function policyLabel() {
-    if (radio("polsrc") === "custom") { var m = /class\s+(\w+)/.exec($("pol-code").value); return (m ? m[1] : "Custom policy") + " (uploaded)"; }
-    var s = $("policy"); return s.options[s.selectedIndex].text;
-  }
-
-  function ciPlot(R) {
-    var arms = R.S.arms.filter(function (a) { return a.n; });
-    var refs = radio("setting") === "mab" ? arms.map(function (a) { return a.mean; }) : [];
-    var lo = Math.min.apply(null, [R.lo].concat(refs)), hi = Math.max.apply(null, [R.hi].concat(refs));
-    var pad = (hi - lo) * 0.12 || 0.1; lo -= pad; hi += pad;
-    var W = 340, H = refs.length ? 92 : 64, x0 = 10, x1 = W - 10;
-    function X(v) { return x0 + (v - lo) / (hi - lo) * (x1 - x0); }
-    var svg = '<svg class="ci-plot" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Confidence interval on the reward scale">';
-    svg += '<line class="axis" x1="' + x0 + '" x2="' + x1 + '" y1="' + (H - 18) + '" y2="' + (H - 18) + '"/>';
-    [lo + pad, (lo + hi) / 2, hi - pad].forEach(function (v) { svg += '<text x="' + X(v) + '" y="' + (H - 4) + '" text-anchor="middle">' + fmt(v, 2) + "</text>"; });
-    svg += '<rect class="band" x="' + X(R.lo) + '" y="12" width="' + Math.max(X(R.hi) - X(R.lo), 2) + '" height="16" rx="3"/>';
-    svg += '<circle class="pt" cx="' + X(R.value) + '" cy="20" r="4"/>';
-    if (refs.length) {
-      R.S.arms.forEach(function (a, k) {
-        if (!a.n) return;
-        svg += '<line class="ref" x1="' + X(a.mean) + '" x2="' + X(a.mean) + '" y1="38" y2="' + (H - 22) + '"/>';
-        svg += '<text class="ref-label" x="' + X(a.mean) + '" y="' + (H - 26) + '" text-anchor="middle" dx="9">' + k + "</text>";
-      });
-    }
-    return svg + "</svg>" + (refs.length ? '<p class="sub">Shaded: the interval. Dashed lines: the logged mean reward of each arm, numbered.</p>' : "");
+      refresh();
+    }, 350);
   }
 
   function renderResult() {
     var body = $("result-body");
-    if (!lastResult) {
-      $("result-stamp").textContent = "";
-      body.innerHTML = '<p class="sub">Run BSI to get a confidence interval for the policy\'s mean reward.</p>';
-      return;
-    }
+    if (!lastResult) { body.innerHTML = ""; return; }
     var R = lastResult;
-    $("result-stamp").textContent = "demo values";
-    var pct = Math.round(R.level * 100);
-    var html = '<div class="result-big"><span class="label">Estimated mean reward per round of ' + esc(policyLabel()) + ", T = " + R.T + '</span>' +
-      '<span class="value">' + fmt(R.value) + "</span>" +
-      '<span class="ci">' + pct + "% CI [" + fmt(R.lo) + ", " + fmt(R.hi) + "]</span></div>";
-    html += ciPlot(R);
-    html += '<dl class="facts"><dt>Rollouts M</dt><dd>' + R.M.toLocaleString() + (R.auto ? " (automatic" + (R.sel.capped ? ", capped" : "") + ")" : " (set by hand)") + "</dd>";
-    if (R.auto) html += "<dt>ρ̂ from pilot</dt><dd>" + fmt(R.sel.rho, 2) + "</dd><dt>Required M</dt><dd>" + R.sel.req.toLocaleString() + "</dd>";
-    html += "<dt>Logged rounds T_off</dt><dd>" + R.S.Toff + "</dd><dt>Interval width</dt><dd>" + fmt(R.hi - R.lo) + "</dd></dl>";
-    if (R.share) html += '<p class="sub">In the simulator the policy pulls arms ' + R.share.map(function (s, k) { return k + ": " + Math.round(s * 100) + "%"; }).join(", ") + ".</p>";
-    if (R.warns) html += '<p class="sub"><span class="pill warn">' + R.warns + " warning" + (R.warns > 1 ? "s" : "") + "</span> Read the checks above before relying on this interval.</p>";
-    body.innerHTML = html;
+    body.innerHTML = '<dl class="facts">' +
+      "<dt>" + Math.round(R.level * 100) + "% confidence interval</dt><dd>[" + fmt(R.lo) + ", " + fmt(R.hi) + "]</dd>" +
+      "<dt>Rollouts M used</dt><dd>" + R.M.toLocaleString() + (R.auto ? (R.capped ? " (cap)" : " (automatic)") : " (set by hand)") + "</dd>" +
+      "<dt>Standard error of the center</dt><dd>" + fmt(R.seCenter, 4) + "</dd>" +
+      "<dt>Standard error of the width</dt><dd>" + fmt(R.seWidth, 4) + "</dd>" +
+      '</dl><p class="sub">Demo values from an in-browser approximation, not the BSI code.</p>';
   }
 
   // ---------- wiring ----------
@@ -929,9 +868,12 @@
     document.querySelectorAll('input[name="' + n + '"]').forEach(function (el) { el.addEventListener("change", refresh); });
   });
   $("policy").addEventListener("change", function () { renderPolicyParams(); refresh(); });
+  // Clear the result whenever a setting changes, so it never describes stale inputs.
   document.querySelector(".steps").addEventListener("input", function (e) {
-    if (e.target.type === "radio" || e.target.type === "file") return;
-    refresh();
+    if (e.target.type === "file") return;
+    lastResult = null;
+    renderResult();
+    if (e.target.type !== "radio") refresh();
   });
   $("env").addEventListener("change", refresh);
   $("run").addEventListener("click", run);
