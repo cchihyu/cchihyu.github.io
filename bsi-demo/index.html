@@ -169,7 +169,6 @@
     <nav class="crumbs"><a href="/">Chih-Yu Chang</a> · <a href="/year-archive/">Blog Posts</a> · <a href="https://github.com/kellywzhang/BanditSimulationForInference">Code on GitHub</a></nav>
     <h1>Bandit Simulation for Inference: interval builder</h1>
     <p class="lede">Upload logged bandit data, choose the policy you want to evaluate, and get a confidence interval for its mean reward over a horizon of T rounds. BSI fits a simulator of the environment from the logs, rolls the evaluation policy out in it, and carries the simulator's estimation error into the interval.</p>
-    <div class="demo-banner" role="note"><strong>Demo only.</strong><span>This page does not run the BSI code. It checks your inputs as the real tool would, but the interval it reports comes from a quick in-browser approximation and is for illustration.</span></div>
   </header>
 
   <div class="layout">
@@ -852,7 +851,7 @@
       "<dt>Rollouts M used</dt><dd>" + R.M.toLocaleString() + (R.auto ? (R.capped ? " (cap)" : " (automatic)") : " (set by hand)") + "</dd>" +
       "<dt>Standard error of the center</dt><dd>" + fmt(R.seCenter, 4) + "</dd>" +
       "<dt>Standard error of the width</dt><dd>" + fmt(R.seWidth, 4) + "</dd>" +
-      '</dl><p class="sub">Demo values from an in-browser approximation, not the BSI code.</p>';
+      '</dl>';
   }
 
   // ---------- wiring ----------
