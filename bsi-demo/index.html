@@ -69,7 +69,6 @@
   .step-head { display: flex; gap: 12px; align-items: baseline; }
   .step-num { font-family: var(--font-mono); font-size: 0.8rem; color: var(--accent); background: var(--accent-soft); border-radius: 999px; padding: 1px 9px; }
   .step-head .hint { color: var(--muted); font-size: 0.85rem; margin-left: auto; text-align: right; }
-  .step.is-off { opacity: 0.55; }
 
   .row { display: flex; flex-wrap: wrap; gap: 12px 18px; align-items: flex-end; }
   .field { display: grid; gap: 4px; min-width: 0; }
@@ -203,7 +202,7 @@
 
       <!-- 3. Context distribution -->
       <section class="step" id="step-context">
-        <div class="step-head"><span class="step-num">3</span><h2>Context distribution</h2><span class="hint" id="context-hint"></span></div>
+        <div class="step-head"><span class="step-num">3</span><h2>Context distribution</h2></div>
         <div class="choices" role="radiogroup" aria-label="Context distribution">
           <label class="choice"><input type="radio" name="ctxsrc" value="gaussian" id="ctx-gaussian"><span>Specify a distribution<small>x ~ N(0, σ² I) in d dimensions.</small></span></label>
           <label class="choice"><input type="radio" name="ctxsrc" value="function" id="ctx-function"><span>Upload a sampler<small>A Python function that draws contexts.</small></span></label>
@@ -558,9 +557,10 @@
       : "Needs <code>action</code>, <code>reward</code>, and one column per context feature (for example <code>x1</code>, <code>x2</code>). If an adaptive policy collected the data, add <code>propensity</code>.";
 
     var ctxOn = setting === "ctx";
-    $("step-context").classList.toggle("is-off", !ctxOn);
+    $("step-context").classList.toggle("hidden", !ctxOn);
     $("step-context").querySelectorAll("input, textarea, select").forEach(function (el) { el.disabled = !ctxOn; });
-    $("context-hint").textContent = ctxOn ? "" : "Only used for contextual bandits";
+    // Number the visible steps in order.
+    document.querySelectorAll(".step:not(.hidden) .step-num").forEach(function (el, k) { el.textContent = k + 1; });
   }
 
   function renderPolicyParams() {
