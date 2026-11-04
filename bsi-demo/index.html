@@ -156,6 +156,10 @@
   svg.ci-plot .ref { stroke: var(--muted); stroke-dasharray: 3 3; }
   svg.ci-plot .ref-label { fill: var(--muted); }
 
+  .m-auto { display: grid; gap: 12px; }
+  .explain { background: var(--accent-soft); border-radius: 8px; padding: 12px 16px; display: grid; gap: 6px; font-size: 0.88rem; }
+  .explain ol { margin: 0; padding-left: 1.3em; display: grid; gap: 4px; max-width: 72ch; }
+  details.advanced summary { cursor: pointer; color: var(--accent); font-size: 0.88rem; margin-bottom: 8px; }
   .hidden { display: none !important; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
 </style>
@@ -192,7 +196,7 @@
           <label class="btn" for="csv-file">Choose CSV file</label>
           <input type="file" id="csv-file" accept=".csv,text/csv" class="hidden">
           <span class="muted">or drop it here</span>
-          <span class="muted examples">Example: <button type="button" class="link" id="ex-clean">clean logs</button> · <button type="button" class="link" id="ex-issues">logs with problems</button></span>
+          <span class="muted examples"><button type="button" class="link" id="ex-clean">Load example data</button></span>
         </div>
         <p class="sub" id="format-hint"></p>
         <p class="data-summary" id="data-summary"></p>
@@ -238,15 +242,33 @@
       <section class="step" id="step-mc">
         <div class="step-head"><span class="step-num">5</span><h2>Monte Carlo rollouts M</h2></div>
         <div class="choices" role="radiogroup" aria-label="Monte Carlo size">
-          <label class="choice"><input type="radio" name="msrc" value="auto" id="m-auto" checked><span>Choose M automatically<small>Pilot-bootstrap rule from the paper: pick the smallest M whose Monte Carlo error is within ε of the interval width.</small></span></label>
+          <label class="choice"><input type="radio" name="msrc" value="auto" id="m-auto" checked><span>Choose M automatically<small>The pilot-bootstrap rule from the paper, explained below.</small></span></label>
           <label class="choice"><input type="radio" name="msrc" value="manual" id="m-manual"><span>Set M by hand</span></label>
         </div>
-        <div class="row" id="m-auto-opts">
-          <label class="field"><span>Pilot rollouts m₀</span><input type="number" id="m-m0" min="100" step="100" value="1000"></label>
-          <label class="field"><span>Bootstrap resamples B</span><input type="number" id="m-B" min="100" step="100" value="1000"></label>
-          <label class="field"><span>Tail probability τ</span><input type="number" id="m-tau" min="0.001" max="0.5" step="0.01" value="0.05"></label>
-          <label class="field"><span>Relative error ε</span><input type="number" id="m-eps" min="0.01" max="1" step="0.01" value="0.1"></label>
-          <label class="field"><span>Budget Mmax</span><input type="number" id="m-max" min="100" step="1000" value="10000"></label>
+        <div id="m-auto-opts" class="m-auto">
+          <div class="row">
+            <label class="field"><span>Maximum M (cap)</span><input type="number" id="m-max" min="100" step="1000" value="10000"></label>
+            <p class="sub" id="m-live"></p>
+          </div>
+          <div class="explain">
+            <h3>How M is chosen</h3>
+            <ol>
+              <li>Roll the policy out m₀ times in the simulator fitted from your logs.</li>
+              <li>Resample those pilot rollouts B times with replacement, and compute the interval width from each resample.</li>
+              <li>Measure how much the width varies: ρ̂ = m₀ · Var(width) / mean(width)².</li>
+              <li>Set M = max(m₀, ⌈z²<sub>1−τ/2</sub> · ρ̂ / ε²⌉). With M rollouts, the Monte Carlo error changes the interval width by less than a fraction ε, with probability 1 − τ.</li>
+              <li>If that M is above your cap, BSI uses the cap and warns you that the Monte Carlo error may be larger than ε.</li>
+            </ol>
+          </div>
+          <details class="advanced">
+            <summary>Advanced settings</summary>
+            <div class="row">
+              <label class="field"><span>Pilot rollouts m₀</span><input type="number" id="m-m0" min="100" step="100" value="1000"></label>
+              <label class="field"><span>Bootstrap resamples B</span><input type="number" id="m-B" min="100" step="100" value="1000"></label>
+              <label class="field"><span>Tail probability τ</span><input type="number" id="m-tau" min="0.001" max="0.5" step="0.01" value="0.05"></label>
+              <label class="field"><span>Relative error ε</span><input type="number" id="m-eps" min="0.01" max="1" step="0.01" value="0.1"></label>
+            </div>
+          </details>
         </div>
         <div class="row hidden" id="m-manual-opts">
           <label class="field"><span>Rollouts M</span><input type="number" id="m-value" min="1" step="100" value="2000"></label>
@@ -405,26 +427,26 @@
   var lastResult = null;
 
   // ---------- example data ----------
-  function exampleMab(issues) {
-    var r = mulberry(issues ? 1 : 3);
-    var K = issues ? 4 : 3, T = issues ? 150 : 500, eps = issues ? 0.03 : 0.1;
-    var mus = issues ? [0.1, 0.4, 0.3, 0.2] : [0.1, 0.2, 1.0];
+  function exampleMab() {
+    var r = mulberry(3), K = 3, T = 500, eps = 0.1;
+    var mus = [0.1, 0.2, 1.0];
     var counts = new Array(K).fill(0), sums = new Array(K).fill(0);
     var rows = [];
     for (var t = 0; t < T; t++) {
-      var p = new Array(K).fill(eps / K), best = 0;
-      for (var k = 1; k < K; k++) if ((counts[k] ? sums[k] / counts[k] : 0) > (counts[best] ? sums[best] / counts[best] : 0)) best = k;
-      p[best] += 1 - eps;
-      var init = issues ? [0, 1, 3] : [0, 1, 2];
-      if (t < init.length) { p = new Array(K).fill(0); p[init[t]] = 1; }
-      if (issues) { p[2] = 0; var s = p.reduce(function (x, y) { return x + y; }, 0); p = p.map(function (v) { return v / s; }); } // arm 2 is never pulled
+      var p;
+      if (t < K) { p = new Array(K).fill(0); p[t] = 1; } // pull each arm once first
+      else {
+        var means = counts.map(function (n, k) { return sums[k] / n; });
+        p = new Array(K).fill(eps / K);
+        p[means.indexOf(Math.max.apply(null, means))] += 1 - eps;
+      }
       var u = r(), a = 0, acc = p[0];
       while (u > acc && a < K - 1) { a++; acc += p[a]; }
-      var y = mus[a] + gauss(r);
+      var y = +(mus[a] + gauss(r)).toFixed(3);
       counts[a]++; sums[a] += y;
-      rows.push([t, a, +y.toFixed(4), +p[a].toFixed(4)]);
+      rows.push([a, y, +p[a].toFixed(3)]);
     }
-    return { name: issues ? "example_logs_with_problems.csv" : "example_epsilon_greedy.csv", header: ["round", "action", "reward", "propensity"], rows: rows, K: K };
+    return { name: "example_logs.csv", header: ["action", "reward", "propensity"], rows: rows, K: K };
   }
   function exampleCtx() {
     var r = mulberry(11), K = 3, d = 2, T = 500, eps = 0.1;
@@ -438,7 +460,7 @@
       var u = r(), a = 0, acc = p[0];
       while (u > acc && a < K - 1) { a++; acc += p[a]; }
       var y = scores[a] + gauss(r);
-      rows.push([+x[0].toFixed(4), +x[1].toFixed(4), a, +y.toFixed(4), +p[a].toFixed(4)]);
+      rows.push([+x[0].toFixed(3), +x[1].toFixed(3), a, +y.toFixed(3), +p[a].toFixed(3)]);
     }
     return { name: "example_contextual_logs.csv", header: ["x1", "x2", "action", "reward", "propensity"], rows: rows, K: K };
   }
@@ -675,7 +697,8 @@
       else add("ok", "M = " + M.toLocaleString() + " rollouts.", "");
     } else if (!S.badActions) {
       var sel = selectedM(S);
-      if (sel.capped) add("warn", "The rule asks for " + sel.req.toLocaleString() + " rollouts, above Mmax = " + num("m-max").toLocaleString() + ".", "BSI will use Mmax, so the Monte Carlo error may exceed your target. Raise Mmax or accept a looser ε.");
+      if (sel.capped) add("warn", "The rule asks for " + sel.req.toLocaleString() + " rollouts, above your cap of " + num("m-max").toLocaleString() + ".", "BSI will use the cap, so the Monte Carlo error may be larger than ε. Raise the cap or accept a larger ε.");
+      else if (!(num("m-max") >= num("m-m0"))) add("bad", "The cap is below the " + num("m-m0").toLocaleString() + " pilot rollouts.", "Set the cap to at least m₀.");
       else add("ok", "M will be chosen by the pilot-bootstrap rule.", "");
     }
     return { list: out, S: S };
@@ -701,6 +724,10 @@
     var res = runChecks();
     renderArmTable(res.S);
     renderChecks(res);
+    if (res.S && !res.S.badActions) {
+      var sel = selectedM(res.S);
+      $("m-live").innerHTML = "For these logs the rule asks for M = " + sel.req.toLocaleString() + (sel.capped ? ", above the cap, so BSI would use " + sel.M.toLocaleString() : ", so BSI would use M = " + sel.M.toLocaleString()) + ". (Demo estimate.)";
+    } else $("m-live").textContent = "";
     return res;
   }
 
@@ -895,7 +922,7 @@
   document.querySelectorAll('input[name="setting"]').forEach(function (el) {
     el.addEventListener("change", function () {
       renderSettingDependent();
-      loadData(radio("setting") === "ctx" ? exampleCtx() : exampleMab(false));
+      loadData(radio("setting") === "ctx" ? exampleCtx() : exampleMab());
     });
   });
   ["ctxsrc", "polsrc", "msrc"].forEach(function (n) {
@@ -909,12 +936,7 @@
   $("env").addEventListener("change", refresh);
   $("run").addEventListener("click", run);
 
-  $("ex-clean").addEventListener("click", function () { loadData(radio("setting") === "ctx" ? exampleCtx() : exampleMab(false)); });
-  $("ex-issues").addEventListener("click", function () {
-    if (radio("setting") === "ctx") { $("setting-mab").checked = true; renderSettingDependent(); }
-    $("horizon").value = 300;
-    loadData(exampleMab(true));
-  });
+  $("ex-clean").addEventListener("click", function () { loadData(radio("setting") === "ctx" ? exampleCtx() : exampleMab()); });
 
   function readFile(file, cb) { var fr = new FileReader(); fr.onload = function () { cb(String(fr.result)); }; fr.readAsText(file); }
   function takeCsv(file) {
@@ -937,7 +959,7 @@
   // ---------- start ----------
   $("ctx-code").value = CTX_TEMPLATE;
   renderSettingDependent();
-  loadData(exampleMab(false));
+  loadData(exampleMab());
   $("policy").value = "ts_normal"; renderPolicyParams();
   refresh();
   run();
