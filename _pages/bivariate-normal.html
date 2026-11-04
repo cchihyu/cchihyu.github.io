@@ -1,0 +1,61 @@
+---
+layout: single
+title: "Exploring the Bivariate Normal Distribution"
+permalink: /bivariate-normal/
+author_profile: true
+---
+
+<style>
+  .bn { margin: 1em 0 2em; }
+  .bn .bn-input { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5em 1.5em; font-size: 0.9em; }
+  .bn .bn-matrix { display: flex; align-items: center; gap: 0.4em; }
+  .bn .bn-matrix-grid { display: grid; grid-template-columns: repeat(2, 5.5em); gap: 0.4em; padding: 0.4em 0.6em; border-left: 2px solid var(--global-text-color); border-right: 2px solid var(--global-text-color); border-radius: 6px; }
+  .bn .bn-matrix-grid input { width: 100%; margin: 0; padding: 0.25em 0.4em; text-align: center; font-size: 0.95em; }
+  .bn .bn-presets { display: flex; flex-wrap: wrap; gap: 0.4em; margin: 0.9em 0 0; }
+  .bn .bn-presets .btn { margin: 0; }
+  .bn .bn-status { font-size: 0.9em; margin: 0.9em 0 0.3em; min-height: 1.5em; }
+  .bn .bn-error { color: #c0392b; }
+  .bn .bn-plot { width: 100%; height: 560px; }
+</style>
+
+<p>A random vector \((X_1, X_2)\) has a bivariate normal distribution with mean \(\boldsymbol{\mu} = (0, 0)\) and variance&ndash;covariance matrix</p>
+
+\[
+\Sigma = \begin{pmatrix} \sigma_1^2 & \sigma_{12} \\ \sigma_{12} & \sigma_2^2 \end{pmatrix}
+\]
+
+<p>if its density is</p>
+
+\[
+f(x_1, x_2) = \frac{1}{2\pi \sqrt{\det \Sigma}} \exp\!\left( -\tfrac{1}{2}\, \mathbf{x}^\top \Sigma^{-1} \mathbf{x} \right).
+\]
+
+<p>Type a matrix below to see its density. The diagonal entries are the variances, and the off-diagonal entry is the covariance; because \(\Sigma\) is symmetric, editing one off-diagonal entry updates the other. \(\Sigma\) must be positive definite: both variances positive and \(\sigma_1^2 \sigma_2^2 - \sigma_{12}^2 > 0\). Drag the plot to rotate it and scroll to zoom.</p>
+
+<div class="bn" id="bn">
+  <div class="bn-input">
+    <div class="bn-matrix">
+      <span>\(\Sigma =\)</span>
+      <div class="bn-matrix-grid">
+        <input type="number" step="any" id="bn-s11" value="1" aria-label="Variance of X1">
+        <input type="number" step="any" id="bn-s12" value="0.5" aria-label="Covariance of X1 and X2">
+        <input type="number" step="any" id="bn-s21" value="0.5" aria-label="Covariance of X2 and X1">
+        <input type="number" step="any" id="bn-s22" value="1" aria-label="Variance of X2">
+      </div>
+    </div>
+  </div>
+
+  <div class="bn-presets">
+    <button type="button" class="btn btn--info" data-s="1,0,1">Independent</button>
+    <button type="button" class="btn btn--info" data-s="1,0.8,1">Positive correlation</button>
+    <button type="button" class="btn btn--info" data-s="1,-0.8,1">Negative correlation</button>
+    <button type="button" class="btn btn--info" data-s="4,0,0.5">Unequal variances</button>
+  </div>
+
+  <p class="bn-status" id="bn-status" aria-live="polite"></p>
+
+  <div class="bn-plot" id="bn-plot"></div>
+</div>
+
+<script src="https://cdn.plot.ly/plotly-2.35.2.min.js" charset="utf-8" defer></script>
+<script src="{{ '/assets/js/bivariate-normal.js' | relative_url }}?v={{ site.time | date: '%s' }}" defer></script>
